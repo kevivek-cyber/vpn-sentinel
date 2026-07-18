@@ -37,6 +37,34 @@
             justify-content: space-between;
         }
 
+        .is-embedded header,
+        .is-embedded footer,
+        .is-embedded .intro-section {
+            display: none !important;
+        }
+
+        .is-embedded body {
+            background: transparent !important;
+            background-image: none !important;
+            min-height: auto !important;
+            padding: 0 !important;
+        }
+
+        .is-embedded .container {
+            padding: 10px !important;
+            max-width: 100% !important;
+            margin: 0 !important;
+            justify-content: center !important;
+        }
+
+        .is-embedded .analyzer-card {
+            border-radius: 16px !important;
+            padding: 24px 16px !important;
+            box-shadow: none !important;
+            border: 1px solid var(--border-color) !important;
+            background: var(--panel-bg) !important;
+        }
+
         header {
             display: flex;
             justify-content: space-between;
@@ -384,6 +412,10 @@
     </footer>
 
     <script>
+        if (window.self !== window.top) {
+            document.documentElement.classList.add('is-embedded');
+        }
+
         const BACKEND_URL = (window.location.protocol === 'file:' || window.location.origin === 'null')
             ? 'http://127.0.0.1:8000'
             : window.location.origin;
