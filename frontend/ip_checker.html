@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN-Sentinel | Instant IP Intelligence Lookup</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #080b11;
+            --panel-bg: rgba(15, 23, 42, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --accent-primary: #3b82f6;
+            --accent-vpn: #ef4444;
+            --accent-safe: #10b981;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --glass-blur: 20px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image:
+                radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(var(--glass-blur));
+            background: rgba(8, 11, 17, 0.5);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-vpn));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: white;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .logo-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+        }
+
+        .logo-subtext {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-left: 1px solid var(--border-color);
+            padding-left: 12px;
+            margin-left: 12px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+        }
+
+        .main-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .search-section {
+            text-align: center;
+            width: 100%;
+            margin-bottom: 32px;
+        }
+
+        .title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(to right, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .search-box-wrapper {
+            display: flex;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            padding: 6px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            backdrop-filter: blur(var(--glass-blur));
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search-box-wrapper:focus-within {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
+        }
+
+        .search-input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0 24px;
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: 400;
+        }
+
+        .search-input::placeholder {
+            color: #4b5563;
+        }
+
+        .btn {
+            border: none;
+            outline: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+            color: #ffffff;
+            padding: 14px 32px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 20px;
+            border-radius: 50px;
+            margin-top: 16px;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+
+        .result-panel {
+            width: 100%;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(var(--glass-blur));
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            display: none;
+            animation: fadeIn 0.4s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+            margin-bottom: 30px;
+        }
+
+        .ip-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .verdict-badge {
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .verdict-badge.vpn {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--accent-vpn);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);
+        }
+
+        .verdict-badge.clean {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--accent-safe);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+
+        .gauge-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            padding: 16px;
+            grid-column: span 2;
+        }
+
+        .gauge-bar-outer {
+            flex-grow: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gauge-bar-inner {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .score-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        footer {
+            padding: 30px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+        }
+
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.05);
+            border-top: 4px solid var(--accent-primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <a class="logo-container" href="#">
+            <div class="logo-icon">VS</div>
+            <div class="logo-text">VPN-SENTINEL</div>
+            <div class="logo-subtext">Side Quest</div>
+        </a>
+        <div class="nav-links">
+            <a href="index.html">← Admin Dashboard</a>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <div class="search-section">
+            <h1 class="title">Instant IP Threat Intelligence</h1>
+            <p class="subtitle">Enter any IPv4 or IPv6 address to instantly check its location, ISP, and VPN/Proxy hosting status.</p>
+
+            <div class="search-box-wrapper">
+                <input type="text" id="ip-input" class="search-input" placeholder="e.g. 89.187.163.19 or leave blank for your IP...">
+                <button class="btn btn-primary" onclick="lookupIP()">Lookup IP</button>
+            </div>
+
+            <button class="btn btn-secondary" onclick="detectMyIP()">Analyze My Current IP</button>
+        </div>
+
+        <div class="spinner" id="loading-spinner"></div>
+
+        <div class="result-panel" id="result-panel">
+            <div class="result-header">
+                <div>
+                    <div class="detail-label">Queried Address</div>
+                    <div class="ip-display" id="res-ip">-</div>
+                </div>
+                <div class="verdict-badge" id="res-verdict">-</div>
+            </div>
+
+            <div class="details-grid">
+
+                <div class="gauge-wrapper">
+                    <div>
+                        <div class="detail-label">Tunnel Risk Score</div>
+                        <div class="score-value" id="res-score">0%</div>
+                    </div>
+                    <div class="gauge-bar-outer">
+                        <div class="gauge-bar-inner" id="res-gauge"></div>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">ISP / Carrier</span>
+                    <span class="detail-value" id="res-isp">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Organization Name</span>
+                    <span class="detail-value" id="res-org">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Autonomous System (ASN)</span>
+                    <span class="detail-value" id="res-as">-</span>
+                </div>
+
+                <div class="detail-item">
+                    <span class="detail-label">Geographic Location</span>
+                    <span class="detail-value" id="res-location">-</span>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        VPN-Sentinel Geolocation and Proxy Detection Engine &copy; 2026. Made with Outfits.
+    </footer>
+
+    <script>
+
+        const datacenterKeywords = [
+            "digitalocean", "m247", "linode", "ovh", "hetzner", "colocrossing", "choopa",
+            "clouvider", "leaseweb", "private internet access", "nordvpn", "expressvpn",
+            "surfshark", "windscribe", "vpn", "proxy", "tor", "exit-node", "datacenter",
+            "hosting", "vps", "hostkey"
+        ];
+
+
+        const genericKeywords = [
+            "amazon", "aws", "microsoft", "google", "servers", "tunnel", "obfuscated",
+            "zenmate", "secure", "hide", "chocoping"
+        ];
+
+        async function detectMyIP() {
+            document.getElementById('ip-input').value = '';
+            lookupIP('');
+        }
+
+        async function lookupIP(targetIp = null) {
+            const inputVal = targetIp !== null ? targetIp : document.getElementById('ip-input').value.trim();
+
+
+            const spinner = document.getElementById('loading-spinner');
+            const resultPanel = document.getElementById('result-panel');
+
+            spinner.style.display = 'block';
+            resultPanel.style.display = 'none';
+
+            try {
+
+                const url = `http://ip-api.com/json/${inputVal}?fields=status,message,country,countryCode,regionName,city,isp,org,as,query`;
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("API Connection Failed");
+
+                const data = await res.json();
+                if (data.status === 'fail') {
+                    alert(`Lookup Failed: ${data.message}`);
+                    spinner.style.display = 'none';
+                    return;
+                }
+
+
+                document.getElementById('res-ip').innerText = data.query;
+                document.getElementById('res-isp').innerText = data.isp || "Unknown";
+                document.getElementById('res-org').innerText = data.org || "Unknown";
+                document.getElementById('res-as').innerText = data.as || "Unknown";
+                document.getElementById('res-location').innerText = `${data.city || 'Unknown'}, ${data.regionName || ''} (${data.country || ''})`;
+
+
+                let riskScore = 0;
+                const testText = `${data.isp} ${data.org} ${data.as}`.toLowerCase();
+
+
+                let hasHighConfidenceMatch = false;
+                datacenterKeywords.forEach(kw => {
+                    if (testText.includes(kw)) {
+                        hasHighConfidenceMatch = true;
+                    }
+                });
+
+                if (hasHighConfidenceMatch) {
+                    riskScore = 100;
+                } else {
+
+                    genericKeywords.forEach(kw => {
+                        if (testText.includes(kw)) {
+                            riskScore += 25;
+                        }
+                    });
+                }
+
+                riskScore = Math.min(100, riskScore);
+                const isVpn = riskScore >= 50;
+
+                const verdictBadge = document.getElementById('res-verdict');
+                const gaugeInner = document.getElementById('res-gauge');
+
+                document.getElementById('res-score').innerText = `${riskScore}%`;
+
+                if (isVpn) {
+                    verdictBadge.innerText = "VPN / HOSTING DETECTED";
+                    verdictBadge.className = "verdict-badge vpn";
+                    gaugeInner.style.backgroundColor = "var(--accent-vpn)";
+                    document.getElementById('res-score').style.color = "var(--accent-vpn)";
+                } else {
+                    verdictBadge.innerText = "RESIDENTIAL / SECURE";
+                    verdictBadge.className = "verdict-badge clean";
+                    gaugeInner.style.backgroundColor = "var(--accent-safe)";
+                    document.getElementById('res-score').style.color = "var(--accent-safe)";
+                }
+
+
+                setTimeout(() => {
+                    gaugeInner.style.width = `${riskScore}%`;
+                }, 100);
+
+                spinner.style.display = 'none';
+                resultPanel.style.display = 'block';
+
+            } catch (err) {
+                alert(`Error querying IP: ${err.message}`);
+                spinner.style.display = 'none';
+            }
+        }
+
+
+        window.onload = () => {
+            detectMyIP();
+        };
+    </script>
+</body>
+</html>

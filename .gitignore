@@ -1,0 +1,22 @@
+# Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.cache/
+
+# Data and Databases
+*.db
+*.csv
+data/
+vpn_sentinel.db
+vpn_sentinel_training_data.csv
+
+# IDEs and System files
+.gemini/
+.system_generated/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
