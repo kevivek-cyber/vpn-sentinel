@@ -88,17 +88,55 @@ def get_ip_info(ip: str):
             "lon": -74.0060,
             "isp": "Local ISP",
             "org": "Local Org",
-            "as": "AS12345 Local ASN"
+            "as": "AS12345 Local ASN",
+            "is_vpn": False,
+            "is_datacenter": False,
+            "is_tor": False,
+            "is_proxy": False
         }
+    
+    # Try calling api.ipapi.is threat intelligence first
+    try:
+        url = f"https://api.ipapi.is/?q={ip}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=3) as response:
+            data = json.loads(response.read().decode())
+            if "location" in data:
+                loc = data["location"]
+                asn_info = data.get("asn", {})
+                return {
+                    "status": "success",
+                    "countryCode": loc.get("country_code"),
+                    "country": loc.get("country"),
+                    "timezone": loc.get("timezone"),
+                    "lat": loc.get("latitude"),
+                    "lon": loc.get("longitude"),
+                    "isp": asn_info.get("descr", "Unknown ISP"),
+                    "org": data.get("company", {}).get("name", "Unknown Org"),
+                    "as": f"AS{asn_info.get('asn')} {asn_info.get('descr')}" if asn_info.get("asn") else "Unknown ASN",
+                    "is_vpn": data.get("is_vpn", False),
+                    "is_datacenter": data.get("is_datacenter", False),
+                    "is_tor": data.get("is_tor", False),
+                    "is_proxy": data.get("is_proxy", False)
+                }
+    except Exception as e:
+        print(f"Error calling ipapi.is: {e}")
+        
+    # Fallback to ip-api.com
     try:
         url = f"http://ip-api.com/json/{ip}?fields=status,message,country,countryCode,timezone,lat,lon,isp,org,as,query"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=3) as response:
             data = json.loads(response.read().decode())
             if data.get("status") == "success":
+                data["is_vpn"] = False
+                data["is_datacenter"] = False
+                data["is_tor"] = False
+                data["is_proxy"] = False
                 return data
     except Exception as e:
         print(f"Error calling ip-api: {e}")
+        
     return {
         "status": "fail",
         "countryCode": "US",
@@ -108,7 +146,11 @@ def get_ip_info(ip: str):
         "lon": -74.0060,
         "isp": "Fallback ISP",
         "org": "Fallback Org",
-        "as": "AS0 Fallback"
+        "as": "AS00000 Fallback ASN",
+        "is_vpn": False,
+        "is_datacenter": False,
+        "is_tor": False,
+        "is_proxy": False
     }
 
 class FlowInput(BaseModel):
@@ -212,10 +254,13 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
 
 
     http_info = get_ip_info(client_ip)
-    rep_text = f"{http_info.get('isp', '')} {http_info.get('org', '')} {http_info.get('as', '')}".lower()
+    
+    # Use threat intelligence flags from the API if available
+    is_datacenter_ip = 1 if http_info.get("is_datacenter") else 0
+    is_known_vpn_ip = 1 if (http_info.get("is_vpn") or http_info.get("is_tor") or http_info.get("is_proxy")) else 0
 
-    is_datacenter_ip = 0
-    is_known_vpn_ip = 0
+    # Secondary safeguard matching keywords in ISP/Org/AS fields
+    rep_text = f"{http_info.get('isp', '')} {http_info.get('org', '')} {http_info.get('as', '')}".lower()
     for kw in DATACENTER_KEYWORDS:
         if kw in rep_text:
             is_datacenter_ip = 1
