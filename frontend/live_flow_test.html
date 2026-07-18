@@ -474,10 +474,10 @@
 
             let clientIp = null;
             try {
-                const ipRes = await fetch("http://ip-api.com/json/?fields=query");
+                const ipRes = await fetch("https://api.ipify.org?format=json");
                 if (ipRes.ok) {
                     const ipData = await ipRes.json();
-                    clientIp = ipData.query;
+                    clientIp = ipData.ip;
                 }
             } catch (e) {
                 console.warn("Could not retrieve public IP address: ", e);
