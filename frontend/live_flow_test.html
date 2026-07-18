@@ -170,16 +170,18 @@
         }
 
         .title {
-            font-size: 2.9rem;
+            font-size: 2.8rem;
             font-weight: 800;
             margin-bottom: 18px;
-            line-height: 1.05;
+            line-height: 1.1;
+            color: #ffffff;
         }
 
-        .title span {
-            background: linear-gradient(to right, white, #9ca3af);
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            display: inline-block;
         }
 
         .subtitle {
@@ -734,7 +736,8 @@
         .stat-icon {
             width: 16px;
             height: 16px;
-            opacity: 0.8;
+            color: var(--accent-primary);
+            flex-shrink: 0;
         }
 
         .stat-label-text {
@@ -792,10 +795,56 @@
             justify-content: center;
             width: 48px;
             height: 48px;
-            border-radius: 16px;
-            background: rgba(59, 130, 246, 0.12);
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1.5px solid rgba(59, 130, 246, 0.25);
             color: var(--accent-primary);
             flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+        }
+
+        .verdict-info-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .verdict-icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            color: var(--text-muted);
+            border: 1.5px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .verdict-card.clean-status .verdict-icon-wrapper {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1.5px solid rgba(16, 185, 129, 0.25);
+            color: var(--accent-safe);
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+        }
+
+        .verdict-card.vpn-alert .verdict-icon-wrapper {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1.5px solid rgba(239, 68, 68, 0.25);
+            color: var(--accent-vpn);
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.15);
+        }
+
+        .verdict-section-label {
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: block;
         }
 
         .explain-details {
@@ -1146,6 +1195,16 @@
 </head>
 <body>
 
+    <!-- Gradient definition for sparkline paths -->
+    <svg style="width:0; height:0; position:absolute; visibility:hidden;">
+        <defs>
+            <linearGradient id="sparkline-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6" />
+                <stop offset="100%" stop-color="#a855f7" />
+            </linearGradient>
+        </defs>
+    </svg>
+
     <header>
         <a class="logo-container" href="#">
             <div class="logo-icon">VS</div>
@@ -1171,8 +1230,10 @@
 
         <section class="intro-panel">
             <div class="intro-copy">
-                <span class="section-label">Live Connection</span>
-                <h1 class="title">Flow Analysis</h1>
+                <h1 class="title">
+                    <div>Live Connection</div>
+                    <span class="gradient-text">Flow Analysis</span>
+                </h1>
                 <p class="subtitle">This utility performs a live latency burst test from your browser to extract connection flow statistics and uses our trained machine learning models to detect active VPNs.</p>
             </div>
             <div class="globe-wrapper">
@@ -1220,12 +1281,19 @@
         <!-- Results Panel -->
         <section class="panel results-panel" id="results" style="display:none;">
             <div class="verdict-card" id="verdict-panel">
-                <div class="verdict-details">
-                    <span class="section-label">Machine Learning Verdict</span>
-                    <div class="verdict-title" id="verdict-text">Residential Secure</div>
-                    <div class="verdict-supported">
-                        <span>VPN Tunnel:</span>
-                        <span class="protocol-pill" id="verdict-protocol">None</span>
+                <div class="verdict-info-group">
+                    <div class="verdict-icon-wrapper">
+                        <svg class="shield-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                    </div>
+                    <div class="verdict-details">
+                        <span class="verdict-section-label">Machine Learning Verdict</span>
+                        <div class="verdict-title" id="verdict-text">Residential Secure</div>
+                        <div class="verdict-supported">
+                            <span>VPN Tunnel:</span>
+                            <span class="protocol-pill" id="verdict-protocol">None</span>
+                        </div>
                     </div>
                 </div>
                 <div class="gauge-wrapper">
@@ -1563,7 +1631,7 @@
                 return `${x.toFixed(1)},${y.toFixed(1)}`;
             });
             path.setAttribute('d', `M ${points.join(' L ')}`);
-            path.setAttribute('stroke', color);
+            path.setAttribute('stroke', 'url(#sparkline-grad)');
         }
 
         function updateGauge(percentage) {
