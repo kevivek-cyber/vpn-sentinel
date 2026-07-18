@@ -83,6 +83,19 @@ timing_features = [
     'geo_ip_distance_km', 'has_geo_permission', 'is_datacenter_ip', 'is_known_vpn_ip', 'proxy_header_detected'
 ]
 
+def apply_feature_noise(X_df, random_state=42):
+    np.random.seed(random_state)
+    X_pert = X_df.copy()
+    perturb_cols = [
+        'is_datacenter_ip', 'is_known_vpn_ip', 'timezone_mismatch_score', 
+        'language_mismatch_score', 'webrtc_ip_mismatch', 'webrtc_blocked', 
+        'proxy_header_detected'
+    ]
+    for col in perturb_cols:
+        if col in X_pert.columns:
+            mask = np.random.rand(len(X_pert)) < 0.3
+            X_pert.loc[mask, col] = (1 - X_pert.loc[mask, col]).astype(int)
+    return X_pert
 
 X_train_br1 = train_br_df[timing_features].fillna(-1.0)
 y_train_br1 = train_br_df['is_vpn']
@@ -90,7 +103,8 @@ X_test_br1 = test_br_df[timing_features].fillna(-1.0)
 y_test_br1 = test_br_df['is_vpn']
 
 clf_browser_s1 = RandomForestClassifier(n_estimators=250, random_state=42, n_jobs=-1)
-clf_browser_s1.fit(X_train_br1, y_train_br1)
+X_train_br1_pert = apply_feature_noise(X_train_br1)
+clf_browser_s1.fit(X_train_br1_pert, y_train_br1)
 
 y_pred_br1 = clf_browser_s1.predict(X_test_br1)
 acc_br1 = accuracy_score(y_test_br1, y_pred_br1)
@@ -106,7 +120,8 @@ X_test_br2 = vpn_test_br_df[timing_features].fillna(-1.0)
 y_test_br2 = vpn_test_br_df['vpn_protocol']
 
 clf_browser_s2 = RandomForestClassifier(n_estimators=250, random_state=42, n_jobs=-1)
-clf_browser_s2.fit(X_train_br2, y_train_br2)
+X_train_br2_pert = apply_feature_noise(X_train_br2)
+clf_browser_s2.fit(X_train_br2_pert, y_train_br2)
 
 y_pred_br2 = clf_browser_s2.predict(X_test_br2)
 acc_br2 = accuracy_score(y_test_br2, y_pred_br2)
