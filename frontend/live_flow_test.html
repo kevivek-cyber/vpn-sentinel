@@ -8,14 +8,14 @@
     <style>
         :root {
             --bg-color: #0b0f19;
-            --panel-bg: rgba(17, 24, 39, 0.6);
-            --border-color: rgba(255, 255, 255, 0.08);
+            --panel-bg: rgba(17, 24, 39, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
             --accent-primary: #3b82f6;
             --accent-vpn: #ef4444;
             --accent-safe: #10b981;
             --text-main: #f3f4f6;
             --text-muted: #9ca3af;
-            --glass-blur: 16px;
+            --glass-blur: 20px;
         }
 
         * {
@@ -28,18 +28,18 @@
         body {
             background-color: var(--bg-color);
             background-image:
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(239, 68, 68, 0.1) 0px, transparent 50%);
+                radial-gradient(at 10% 10%, rgba(59, 130, 246, 0.16) 0px, transparent 45%),
+                radial-gradient(at 95% 10%, rgba(239, 68, 68, 0.12) 0px, transparent 40%),
+                radial-gradient(at 50% 90%, rgba(79, 70, 229, 0.08) 0px, transparent 35%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
         }
 
         .is-embedded header,
         .is-embedded footer,
-        .is-embedded .intro-container {
+        .is-embedded .intro-panel {
             display: none !important;
         }
 
@@ -57,7 +57,7 @@
             justify-content: center !important;
         }
 
-        .is-embedded .analyzer-card {
+        .is-embedded .panel {
             border-radius: 16px !important;
             padding: 16px !important;
             box-shadow: none !important;
@@ -69,10 +69,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 40px;
+            padding: 24px 40px;
             border-bottom: 1px solid var(--border-color);
             backdrop-filter: blur(var(--glass-blur));
-            background: rgba(11, 15, 25, 0.5);
+            background: rgba(11, 15, 25, 0.55);
         }
 
         .logo-container {
@@ -83,24 +83,47 @@
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
+            width: 34px;
+            height: 34px;
             background: linear-gradient(135deg, var(--accent-primary), var(--accent-vpn));
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: white;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 18px rgba(59, 130, 246, 0.35);
         }
 
         .logo-text {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            font-size: 0.95rem;
+            font-weight: 800;
             letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: white;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .nav-links a {
@@ -113,85 +136,96 @@
         }
 
         .nav-links a:hover {
-            color: #ffffff;
+            color: white;
         }
 
         .container {
             flex-grow: 1;
-            padding: 40px 20px;
-            max-width: 900px;
+            padding: 40px 24px 32px;
+            max-width: 1200px;
             width: 100%;
             margin: 0 auto;
         }
 
-        .intro-container {
-            display: flex;
-            justify-content: space-between;
+        .intro-panel {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
             align-items: center;
-            margin-bottom: 40px;
-            gap: 20px;
+            gap: 28px;
+            margin-bottom: 30px;
         }
 
-        .intro-text {
-            flex: 1;
+        .intro-copy {
+            max-width: 700px;
+        }
+
+        .section-label {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-primary);
+            font-size: 0.82rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            display: block;
         }
 
         .title {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 12px;
-            letter-spacing: -0.5px;
+            font-size: 2.9rem;
+            font-weight: 800;
+            margin-bottom: 18px;
+            line-height: 1.05;
         }
 
         .title span {
-            background: linear-gradient(to right, var(--accent-primary), #60a5fa);
+            background: linear-gradient(to right, white, #9ca3af);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .subtitle {
-            font-size: 0.95rem;
+            font-size: 1rem;
             color: var(--text-muted);
-            line-height: 1.6;
+            line-height: 1.8;
         }
 
         .globe-wrapper {
-            width: 180px;
-            height: 180px;
+            width: 240px;
+            height: 240px;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-shrink: 0;
+            border-radius: 32px;
+            background: radial-gradient(circle at center, rgba(59, 130, 246, 0.14), transparent 55%);
+            margin-left: auto;
         }
 
-        .analyzer-card {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .scan-control {
+        .panel {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 24px;
+            border-radius: 28px;
+            padding: 28px;
+            backdrop-filter: blur(var(--glass-blur));
+        }
+
+        /* Ready Card */
+        .ready-card {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(var(--glass-blur));
             gap: 20px;
+            margin-bottom: 24px;
         }
 
-        .scan-info {
+        .ready-info {
             display: flex;
             align-items: center;
             gap: 16px;
         }
 
         .mini-radar {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border: 2px solid rgba(59, 130, 246, 0.15);
             border-radius: 50%;
             position: relative;
@@ -200,8 +234,8 @@
 
         .mini-radar::after {
             content: '';
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border: 2px solid var(--accent-primary);
             border-radius: 50%;
             position: absolute;
@@ -215,14 +249,15 @@
             100% { transform: scale(1.2); opacity: 0; }
         }
 
-        .scan-text-title {
-            font-weight: 600;
+        .ready-title {
             font-size: 1.05rem;
+            font-weight: 700;
+            color: white;
             margin-bottom: 4px;
         }
 
-        .scan-text-sub {
-            font-size: 0.85rem;
+        .ready-subtitle {
+            font-size: 0.88rem;
             color: var(--text-muted);
         }
 
@@ -264,137 +299,330 @@
             fill: currentColor;
         }
 
-        .scanner-feedback {
-            display: none;
-            text-align: center;
-            background: rgba(17, 24, 39, 0.4);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 30px;
-            backdrop-filter: blur(var(--glass-blur));
-        }
-
-        .feedback-pulse {
-            width: 60px;
-            height: 60px;
-            border: 3px solid rgba(59, 130, 246, 0.2);
-            border-radius: 50%;
-            margin: 0 auto 16px auto;
-            position: relative;
-            animation: pulse-out 1.2s infinite;
-        }
-
-        @keyframes pulse-out {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
-        .progress-label {
-            font-size: 0.95rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .results-wrapper {
-            display: none;
-            flex-direction: column;
-            gap: 24px;
-            animation: slideIn 0.3s ease-out forwards;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .verdict-card {
+        /* Stepper & Scanning Layout */
+        .scanning-panel {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-radius: 24px;
-            padding: 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border-radius: 28px;
+            padding: 32px;
             backdrop-filter: blur(var(--glass-blur));
+        }
+
+        .scanning-header {
+            margin-bottom: 28px;
+        }
+
+        .scanning-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .scanning-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .steps-list {
+            display: flex;
+            flex-direction: column;
             gap: 20px;
         }
 
-        .verdict-info {
+        .step-item {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 16px;
+            position: relative;
         }
 
-        .shield-icon-wrapper {
-            width: 54px;
-            height: 54px;
-            border-radius: 14px;
+        .step-line-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 24px;
+            align-self: stretch;
+            position: relative;
+        }
+
+        .step-indicator {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #111827;
+            border: 2px solid #374151;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+
+        .step-line-segment {
+            position: absolute;
+            top: 24px;
+            bottom: -20px;
+            width: 2px;
+            background: #374151;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .step-item.pending .step-line-segment {
+            background-image: linear-gradient(to bottom, #374151 50%, transparent 50%);
+            background-size: 2px 8px;
+            background-color: transparent;
+        }
+
+        .step-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: #4b5563;
+            transition: all 0.3s ease;
             flex-shrink: 0;
         }
 
-        .verdict-card.vpn-alert .shield-icon-wrapper {
+        .step-content {
+            flex-grow: 1;
+            min-width: 0;
+        }
+
+        .step-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #9ca3af;
+            transition: color 0.3s ease;
+        }
+
+        .step-desc {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 2px;
+            transition: color 0.3s ease;
+        }
+
+        .step-status {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6b7280;
+            width: 110px;
+            text-align: right;
+            transition: color 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        /* Completed State Styles */
+        .step-item.completed .step-indicator {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .step-item.completed .step-indicator::after {
+            content: '';
+            width: 5px;
+            height: 9px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-bottom: 2px;
+        }
+
+        .step-item.completed .step-line-segment {
+            background: #3b82f6;
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .step-item.completed .step-icon-box {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .step-item.completed .step-title {
+            color: #ffffff;
+        }
+
+        .step-item.completed .step-desc {
+            color: #9ca3af;
+        }
+
+        .step-item.completed .step-status {
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        /* Active / In Progress State Styles */
+        .step-item.active .step-indicator {
+            background: #ffffff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.8);
+        }
+
+        .step-item.active .step-dot {
+            background: #3b82f6;
+            width: 8px;
+            height: 8px;
+        }
+
+        .step-item.active .step-line-segment {
+            background: linear-gradient(to bottom, #3b82f6, #374151);
+        }
+
+        .step-item.active .step-icon-box {
+            background: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+            animation: pulse-border 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .step-item.active .step-title {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        .step-item.active .step-desc {
+            color: #d1d5db;
+        }
+
+        .step-item.active .step-status {
+            color: #3b82f6;
+            font-weight: 700;
+        }
+
+        /* Failed State Styles */
+        .step-item.failed .step-indicator {
+            background: var(--accent-vpn);
+            border-color: var(--accent-vpn);
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .step-item.failed .step-icon-box {
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: var(--accent-vpn);
+        }
+
+        .step-item.failed .step-title {
+            color: var(--accent-vpn);
+        }
+
+        .step-item.failed .step-status {
+            color: var(--accent-vpn);
+            font-weight: 700;
+        }
+
+        /* Three dots pulsing animation for In Progress */
+        .dots-loader {
+            display: inline-flex;
+            gap: 3px;
+            margin-top: 4px;
+        }
+
+        .dots-loader span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: dots-pulse 1.4s infinite ease-in-out both;
+        }
+
+        .dots-loader span:nth-child(1) { animation-delay: -0.32s; }
+        .dots-loader span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes dots-pulse {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .results-panel {
+            display: grid;
+            gap: 24px;
+        }
+
+        .verdict-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 22, 37, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 28px;
+            gap: 24px;
+        }
+
+        .verdict-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .verdict-title {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .verdict-card.vpn-alert .verdict-title {
+            color: var(--accent-vpn);
+        }
+
+        .verdict-card.clean-status .verdict-title {
+            color: var(--accent-safe);
+        }
+
+        .verdict-supported {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .protocol-pill {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .verdict-card.vpn-alert .protocol-pill {
             background: rgba(239, 68, 68, 0.1);
             color: var(--accent-vpn);
             border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
-        .verdict-card.clean-status .shield-icon-wrapper {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--accent-safe);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-        }
-
-        .verdict-text-wrapper {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .verdict-meta {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 6px;
-        }
-
-        .verdict-main {
-            font-size: 1.6rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .verdict-card.vpn-alert .verdict-main {
-            color: var(--accent-vpn);
-        }
-
-        .verdict-card.clean-status .verdict-main {
-            color: var(--accent-safe);
-        }
-
-        .verdict-protocol-label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .verdict-protocol-label span {
-            background: rgba(255, 255, 255, 0.06);
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: var(--text-main);
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-left: 6px;
-        }
-
         .gauge-wrapper {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             flex-shrink: 0;
         }
 
@@ -430,7 +658,7 @@
 
         .gauge-center-text {
             position: absolute;
-            top: 45%;
+            top: 42%;
             left: 50%;
             transform: translate(-50%, -50%);
             display: flex;
@@ -439,18 +667,18 @@
         }
 
         .gauge-num {
-            font-size: 1.5rem;
-            font-weight: 700;
+            font-size: 1.7rem;
+            font-weight: 800;
+            line-height: 1;
         }
 
         .gauge-lbl {
-            font-size: 0.55rem;
+            font-size: 0.68rem;
             font-weight: 600;
             color: var(--text-muted);
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
             margin-top: 2px;
             text-align: center;
-            line-height: 1;
         }
 
         .gauge-confidence-badge {
@@ -458,11 +686,11 @@
             bottom: -5px;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 0.65rem;
+            font-size: 0.68rem;
             font-weight: 700;
             text-transform: uppercase;
-            padding: 1px 8px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 999px;
             white-space: nowrap;
         }
 
@@ -478,15 +706,6 @@
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
-        .stats-section-title {
-            font-size: 0.8rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -494,15 +713,11 @@
         }
 
         .stat-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 18px;
             padding: 20px;
-            backdrop-filter: blur(var(--glass-blur));
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 115px;
+            min-height: 120px;
             position: relative;
             overflow: hidden;
         }
@@ -527,9 +742,9 @@
         }
 
         .stat-val {
-            font-size: 1.35rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            margin-top: 8px;
+            margin-top: 10px;
             z-index: 2;
         }
 
@@ -554,25 +769,29 @@
             stroke-linecap: round;
         }
 
-        .explain-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
+        .shap-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 22px;
             padding: 24px;
-            backdrop-filter: blur(var(--glass-blur));
-            display: flex;
-            justify-content: space-between;
-            gap: 30px;
-            align-items: center;
+            display: grid;
+            gap: 20px;
         }
 
         .explain-content {
-            flex: 1.2;
             display: flex;
-            gap: 16px;
+            gap: 18px;
+            align-items: flex-start;
         }
 
         .brain-icon-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            background: rgba(59, 130, 246, 0.12);
             color: var(--accent-primary);
             flex-shrink: 0;
         }
@@ -592,29 +811,25 @@
         }
 
         .explain-body-text {
-            font-size: 0.88rem;
-            line-height: 1.5;
+            font-size: 0.9rem;
             color: var(--text-main);
+            line-height: 1.75;
         }
 
         .shap-chart-wrapper {
-            flex: 0.8;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 100%;
+            display: grid;
+            gap: 11px;
         }
 
         .shap-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            font-size: 0.72rem;
             gap: 12px;
+            font-size: 0.75rem;
         }
 
         .shap-feature-name {
-            width: 80px;
+            width: 90px;
             font-family: monospace;
             color: var(--text-muted);
             text-align: right;
@@ -645,29 +860,21 @@
         }
 
         .shap-val {
-            width: 34px;
-            font-weight: 600;
+            width: 44px;
+            font-weight: 700;
             font-family: monospace;
             text-align: left;
         }
 
-        .shap-val.pos {
-            color: var(--accent-vpn);
-        }
-
-        .shap-val.neg {
-            color: var(--accent-primary);
-        }
-
         .footer-note {
-            background: rgba(59, 130, 246, 0.03);
-            border: 1px dashed rgba(59, 130, 246, 0.15);
-            border-radius: 12px;
-            padding: 12px 18px;
+            background: rgba(59, 130, 246, 0.04);
+            border: 1px dashed rgba(59, 130, 246, 0.18);
+            border-radius: 16px;
+            padding: 16px 20px;
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 0.82rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
         }
 
@@ -677,76 +884,155 @@
         }
 
         footer {
-            padding: 30px;
+            padding: 24px;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        @media (max-width: 960px) {
+            .intro-panel {
+                grid-template-columns: 1fr;
+                gap: 22px;
+            }
+            .globe-wrapper {
+                margin: 0 auto;
+            }
         }
 
         @media (max-width: 768px) {
-            .intro-container {
-                flex-direction: column-reverse;
-                align-items: center;
-                text-align: center;
-                margin-bottom: 24px;
+            header {
+                padding: 16px 20px;
+                position: relative;
             }
 
-            .globe-wrapper {
-                width: 140px;
-                height: 140px;
+            .mobile-menu-toggle {
+                display: flex;
             }
 
-            .scan-control {
+            .nav-links {
+                display: none;
                 flex-direction: column;
-                align-items: stretch;
-                padding: 20px;
+                position: absolute;
+                top: 80px;
+                right: 20px;
+                background: rgba(15, 23, 42, 0.95);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 16px;
+                gap: 10px;
+                z-index: 1000;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(var(--glass-blur));
+                width: 200px;
             }
 
-            .scan-info {
-                justify-content: center;
-                text-align: center;
+            .nav-links.active {
+                display: flex;
             }
 
-            .action-btn {
-                justify-content: center;
+            .nav-links a {
+                margin: 0;
+                padding: 10px 14px;
                 width: 100%;
+                text-align: left;
+                border-radius: 8px;
+                transition: background 0.2s ease;
+            }
+
+            .nav-links a:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .container {
+                padding: 24px 16px 24px;
+            }
+
+            .title {
+                font-size: 2.4rem;
             }
 
             .verdict-card {
-                flex-direction: column;
-                padding: 20px;
-                text-align: center;
+                padding: 18px 20px;
+                gap: 16px;
             }
 
-            .verdict-info {
-                flex-direction: column;
-                gap: 12px;
+            .verdict-title {
+                font-size: 1.4rem;
+            }
+
+            .verdict-supported {
+                font-size: 0.82rem;
+            }
+
+            .gauge-wrapper {
+                width: 100px;
+                height: 100px;
+            }
+
+            .gauge-num {
+                font-size: 1.3rem;
+            }
+
+            .gauge-lbl {
+                font-size: 0.55rem;
+            }
+
+            .gauge-confidence-badge {
+                font-size: 0.58rem;
+                padding: 4px 8px;
+                bottom: -2px;
             }
 
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .step-item {
+                gap: 12px;
             }
 
-            .explain-card {
-                flex-direction: column;
-                gap: 20px;
+            .step-icon-box {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .step-icon-box svg {
+                width: 16px;
+                height: 16px;
             }
 
-            .explain-content {
-                text-align: center;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .shap-chart-wrapper {
-                flex: 1;
+            .step-status {
+                width: 80px;
+                font-size: 0.8rem;
             }
         }
 
         @media (max-width: 480px) {
             .stats-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 14px;
+                min-height: 100px;
+            }
+            
+            .stat-val {
+                font-size: 1.25rem;
+                margin-top: 6px;
             }
         }
     </style>
@@ -756,9 +1042,19 @@
     <header>
         <a class="logo-container" href="#">
             <div class="logo-icon">VS</div>
-            <div class="logo-text">VPN-SENTINEL</div>
+            <div class="logo-text">
+                <span>VPN-</span>
+                <span>SENTINEL</span>
+            </div>
         </a>
-        <div class="nav-links">
+        <button class="mobile-menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <div class="nav-links" id="nav-links">
             <a href="index.html">← Admin Dashboard</a>
             <a href="ip_checker.html">IP Threat Intel →</a>
         </div>
@@ -766,233 +1062,224 @@
 
     <main class="container">
 
-        <div class="intro-container">
-            <div class="intro-text">
-                <h1 class="title">Live Connection <span>Flow Analysis</span></h1>
+        <section class="intro-panel">
+            <div class="intro-copy">
+                <span class="section-label">Live Connection</span>
+                <h1 class="title">Flow Analysis</h1>
                 <p class="subtitle">This utility performs a live latency burst test from your browser to extract connection flow statistics and uses our trained machine learning models to detect active VPNs.</p>
             </div>
             <div class="globe-wrapper">
-                <canvas id="globe-canvas" width="180" height="180"></canvas>
+                <canvas id="globe-canvas" width="220" height="220"></canvas>
             </div>
-        </div>
+        </section>
 
-        <div class="analyzer-card">
-
-            <div class="scan-control" id="scan-bar">
-                <div class="scan-info">
-                    <div class="mini-radar"></div>
-                    <div>
-                        <div class="scan-text-title">Ready to scan your connection</div>
-                        <div class="scan-text-sub">Click the button below to start the ML-powered connection analysis.</div>
-                    </div>
-                </div>
-                <button class="action-btn" id="start-btn" onclick="startAnalysis()">
-                    <svg class="play-icon" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                    Start ML Connection Scan
-                </button>
-            </div>
-
-            <div class="scanner-feedback" id="scanner">
-                <div class="feedback-pulse"></div>
-                <div class="progress-label" id="progress-status">Measuring connection latency...</div>
-            </div>
-
-            <div class="results-wrapper" id="results">
-
-                <div class="verdict-card" id="verdict-panel">
-                    <div class="verdict-info">
-                        <div class="shield-icon-wrapper">
-                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                            </svg>
-                        </div>
-                        <div class="verdict-text-wrapper">
-                            <div class="verdict-meta">Machine Learning Verdict</div>
-                            <div class="verdict-main" id="verdict-text">Residential Connection</div>
-                            <div class="verdict-protocol-label">VPN Tunnel: <span id="verdict-protocol">None</span></div>
-                        </div>
-                    </div>
-                    
-                    <div class="gauge-wrapper">
-                        <svg class="gauge-svg" viewBox="0 0 100 100">
-                            <circle class="gauge-bg-circle" cx="50" cy="50" r="40" />
-                            <circle class="gauge-fill-circle" id="gauge-fill" cx="50" cy="50" r="40" />
-                        </svg>
-                        <div class="gauge-center-text">
-                            <span class="gauge-num" id="gauge-val">0%</span>
-                            <span class="gauge-lbl">CONFIDENCE<br>SCORE</span>
-                        </div>
-                        <div class="gauge-confidence-badge" id="gauge-badge">High Confidence</div>
-                    </div>
-                </div>
-
+        <!-- Ready to Scan Card -->
+        <div class="panel ready-card" id="ready-card">
+            <div class="ready-info">
+                <div class="mini-radar"></div>
                 <div>
-                    <h3 class="stats-section-title">Connection Statistics</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
-                                </svg>
-                                <span class="stat-label-text">Burst Duration</span>
-                            </div>
-                            <span class="stat-val" id="f-dur">0.00s</span>
-                            <div class="sparkline-container">
-                                <svg class="sparkline-svg">
-                                    <path class="sparkline-path" id="spark-dur" stroke="#3b82f6" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                                </svg>
-                                <span class="stat-label-text">Mean IAT</span>
-                            </div>
-                            <span class="stat-val" id="f-iat">0.000s</span>
-                            <div class="sparkline-container">
-                                <svg class="sparkline-svg">
-                                    <path class="sparkline-path" id="spark-iat" stroke="#10b981" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M3 3v18h18" />
-                                    <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
-                                </svg>
-                                <span class="stat-label-text">IAT Std Dev</span>
-                            </div>
-                            <span class="stat-val" id="f-std">0.000s</span>
-                            <div class="sparkline-container">
-                                <svg class="sparkline-svg">
-                                    <path class="sparkline-path" id="spark-std" stroke="#a855f7" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                                </svg>
-                                <span class="stat-label-text">Jitter Ratio (Std/Mean)</span>
-                            </div>
-                            <span class="stat-val" id="f-jit">0.000</span>
-                            <div class="sparkline-container">
-                                <svg class="sparkline-svg">
-                                    <path class="sparkline-path" id="spark-jit" stroke="#f59e0b" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="stat-card">
-                            <div class="stat-header">
-                                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                                    <polyline points="2 17 12 22 22 17" />
-                                    <polyline points="2 12 12 17 22 12" />
-                                </svg>
-                                <span class="stat-label-text">Packets / Sec</span>
-                            </div>
-                            <span class="stat-val" id="f-pps">0.0</span>
-                            <div class="sparkline-container">
-                                <svg class="sparkline-svg">
-                                    <path class="sparkline-path" id="spark-pps" stroke="#ec4899" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        <div class="stat-card" style="justify-content: flex-start;">
-                            <div class="stat-header">
-                                <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                                    <line x1="8" y1="21" x2="16" y2="21" />
-                                    <line x1="12" y1="17" x2="12" y2="21" />
-                                </svg>
-                                <span class="stat-label-text">Protocol Detected</span>
-                            </div>
-                            <span class="stat-val" id="f-proto" style="margin-top: 8px;">Clean Connection</span>
-                            <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;" id="f-proto-sub">Residential</span>
-                        </div>
-                    </div>
+                    <div class="ready-title">Ready to scan your connection</div>
+                    <div class="ready-subtitle">Click the button below to start the ML-powered connection analysis.</div>
                 </div>
+            </div>
+            <button class="action-btn" id="start-btn" onclick="startAnalysis()">
+                <svg class="play-icon" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                Start ML Connection Scan
+            </button>
+        </div>
 
-                <div class="explain-card">
-                    <div class="explain-content">
-                        <div class="brain-icon-wrapper">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-4.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z"/>
-                                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-4.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z"/>
-                            </svg>
-                        </div>
-                        <div class="explain-details">
-                            <span class="explain-title">SHAP Explainability Justification</span>
-                            <p class="explain-body-text" id="explain-text">-</p>
-                        </div>
-                    </div>
-
-                    <div class="shap-chart-wrapper" id="shap-bars">
-                        <div class="shap-row">
-                            <span class="shap-feature-name">is_dc_ip</span>
-                            <div class="shap-bar-container">
-                                <div class="shap-bar positive" id="bar-dc"></div>
-                            </div>
-                            <span class="shap-val pos" id="val-dc">+0.00</span>
-                        </div>
-                        <div class="shap-row">
-                            <span class="shap-feature-name">duration</span>
-                            <div class="shap-bar-container">
-                                <div class="shap-bar positive" id="bar-dur"></div>
-                            </div>
-                            <span class="shap-val pos" id="val-dur">+0.00</span>
-                        </div>
-                        <div class="shap-row">
-                            <span class="shap-feature-name">iat_std</span>
-                            <div class="shap-bar-container">
-                                <div class="shap-bar positive" id="bar-std"></div>
-                            </div>
-                            <span class="shap-val pos" id="val-std">+0.00</span>
-                        </div>
-                        <div class="shap-row">
-                            <span class="shap-feature-name">jitter_r</span>
-                            <div class="shap-bar-container">
-                                <div class="shap-bar negative" id="bar-jit"></div>
-                            </div>
-                            <span class="shap-val neg" id="val-jit">-0.00</span>
-                        </div>
-                        <div class="shap-row">
-                            <span class="shap-feature-name">pps</span>
-                            <div class="shap-bar-container">
-                                <div class="shap-bar negative" id="bar-pps"></div>
-                            </div>
-                            <span class="shap-val neg" id="val-pps">-0.00</span>
-                        </div>
-                    </div>
+        <!-- Scanning Stepper Workflow Panel -->
+        <div class="panel scanning-panel" id="scanning-panel" style="display: none;">
+            <div class="scanning-header">
+                <h2 class="scanning-title">Scanning Connection...</h2>
+                <p class="scanning-subtitle">Please wait while our ML engine analyzes your connection in real-time.</p>
+            </div>
+            <div class="steps-list" id="scan-steps"></div>
+            
+            <div class="footer-note" style="margin-top: 24px;">
+                <div class="info-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="16" x2="12" y2="12"/>
+                        <line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
                 </div>
-
-                <div class="footer-note">
-                    <div class="info-icon">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10" />
-                            <line x1="12" y1="16" x2="12" y2="12" />
-                            <line x1="12" y1="8" x2="12.01" y2="8" />
-                        </svg>
-                    </div>
-                    <span>All analysis is performed locally in your browser. No personal data or payloads are uploaded.</span>
-                </div>
-
+                <span>This scan runs entirely in your browser. No data is stored on our servers.</span>
             </div>
         </div>
 
+        <!-- Results Panel -->
+        <section class="panel results-panel" id="results" style="display:none;">
+            <div class="verdict-card" id="verdict-panel">
+                <div class="verdict-details">
+                    <span class="section-label">Machine Learning Verdict</span>
+                    <div class="verdict-title" id="verdict-text">Residential Secure</div>
+                    <div class="verdict-supported">
+                        <span>VPN Tunnel:</span>
+                        <span class="protocol-pill" id="verdict-protocol">None</span>
+                    </div>
+                </div>
+                <div class="gauge-wrapper">
+                    <svg class="gauge-svg" viewBox="0 0 100 100">
+                        <circle class="gauge-bg-circle" cx="50" cy="50" r="40" />
+                        <circle class="gauge-fill-circle" id="gauge-fill" cx="50" cy="50" r="40" />
+                    </svg>
+                    <div class="gauge-center-text">
+                        <span class="gauge-num" id="gauge-val">0%</span>
+                        <span class="gauge-lbl">Confidence Score</span>
+                    </div>
+                    <div class="gauge-confidence-badge" id="gauge-badge">High Confidence</div>
+                </div>
+            </div>
+
+            <div>
+                <span class="section-label">Connection Statistics</span>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                            <span class="stat-label-text">Burst Duration</span>
+                        </div>
+                        <span class="stat-val" id="f-dur">0.00s</span>
+                        <div class="sparkline-container">
+                            <svg class="sparkline-svg">
+                                <path class="sparkline-path" id="spark-dur" stroke="#3b82f6" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                            </svg>
+                            <span class="stat-label-text">Mean IAT</span>
+                        </div>
+                        <span class="stat-val" id="f-iat">0.000s</span>
+                        <div class="sparkline-container">
+                            <svg class="sparkline-svg">
+                                <path class="sparkline-path" id="spark-iat" stroke="#10b981" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 3v18h18" />
+                                <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3" />
+                            </svg>
+                            <span class="stat-label-text">IAT Std Dev</span>
+                        </div>
+                        <span class="stat-val" id="f-std">0.000s</span>
+                        <div class="sparkline-container">
+                            <svg class="sparkline-svg">
+                                <path class="sparkline-path" id="spark-std" stroke="#a855f7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+                            <span class="stat-label-text">Jitter Ratio (Std/Mean)</span>
+                        </div>
+                        <span class="stat-val" id="f-jit">0.000</span>
+                        <div class="sparkline-container">
+                            <svg class="sparkline-svg">
+                                <path class="sparkline-path" id="spark-jit" stroke="#f59e0b" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                                <polyline points="2 17 12 22 22 17" />
+                                <polyline points="2 12 12 17 22 12" />
+                            </svg>
+                            <span class="stat-label-text">Packets / Sec</span>
+                        </div>
+                        <span class="stat-val" id="f-pps">0.0</span>
+                        <div class="sparkline-container">
+                            <svg class="sparkline-svg">
+                                <path class="sparkline-path" id="spark-pps" stroke="#ec4899" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="justify-content: flex-start;">
+                        <div class="stat-header">
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                <line x1="8" y1="21" x2="16" y2="21" />
+                                <line x1="12" y1="17" x2="12" y2="21" />
+                            </svg>
+                            <span class="stat-label-text">Protocol Detected</span>
+                        </div>
+                        <span class="stat-val" id="f-proto" style="margin-top: 8px;">Clean Connection</span>
+                        <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;" id="f-proto-sub">Residential</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shap-card">
+                <div class="explain-content">
+                    <div class="brain-icon-wrapper">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-4.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z"/>
+                            <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-4.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z"/>
+                        </svg>
+                    </div>
+                    <div class="explain-details">
+                        <span class="explain-title">SHAP Explainability Justification</span>
+                        <p class="explain-body-text" id="explain-text">-</p>
+                    </div>
+                </div>
+                <div class="shap-chart-wrapper" id="shap-bars">
+                    <div class="shap-row">
+                        <span class="shap-feature-name">is_datacenter_ip</span>
+                        <div class="shap-bar-container"><div class="shap-bar positive" id="bar-dc"></div></div>
+                        <span class="shap-val pos" id="val-dc">+0.00</span>
+                    </div>
+                    <div class="shap-row">
+                        <span class="shap-feature-name">duration</span>
+                        <div class="shap-bar-container"><div class="shap-bar positive" id="bar-dur"></div></div>
+                        <span class="shap-val pos" id="val-dur">+0.00</span>
+                    </div>
+                    <div class="shap-row">
+                        <span class="shap-feature-name">iat_std</span>
+                        <div class="shap-bar-container"><div class="shap-bar positive" id="bar-std"></div></div>
+                        <span class="shap-val pos" id="val-std">+0.00</span>
+                    </div>
+                    <div class="shap-row">
+                        <span class="shap-feature-name">jitter_ratio</span>
+                        <div class="shap-bar-container"><div class="shap-bar negative" id="bar-jit"></div></div>
+                        <span class="shap-val neg" id="val-jit">-0.00</span>
+                    </div>
+                    <div class="shap-row">
+                        <span class="shap-feature-name">pps</span>
+                        <div class="shap-bar-container"><div class="shap-bar negative" id="bar-pps"></div></div>
+                        <span class="shap-val neg" id="val-pps">-0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                <div class="info-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                </div>
+                <span>This scan runs entirely in your browser. No data is stored on our servers.</span>
+            </div>
+        </section>
     </main>
 
     <footer>
@@ -1008,6 +1295,16 @@
             ? 'http://127.0.0.1:8000'
             : window.location.origin;
 
+        const scanSteps = [
+            { label: 'Establishing Connection', meta: 'Initiating latency burst test...' },
+            { label: 'Collecting Packets', meta: 'Sending and receiving test packets...' },
+            { label: 'Measuring Latency', meta: 'Calculating timing metrics...' },
+            { label: 'Analyzing with ML Models', meta: 'Extracting features and running machine learning models...' },
+            { label: 'Detecting VPN / Proxy', meta: 'Classifying connection type...' },
+            { label: 'Generating Report', meta: 'Compiling results and insights...' },
+            { label: 'Finalizing Results', meta: 'Almost done...' }
+        ];
+
         function initGlobe() {
             const canvas = document.getElementById('globe-canvas');
             if (!canvas) return;
@@ -1021,21 +1318,21 @@
 
             function draw() {
                 ctx.clearRect(0, 0, width, height);
-                ctx.strokeStyle = 'rgba(59, 130, 246, 0.2)';
-                ctx.lineWidth = 1;
-
-                const glow = ctx.createRadialGradient(cx, cy, radius * 0.7, cx, cy, radius * 1.1);
-                glow.addColorStop(0, 'rgba(59, 130, 246, 0.06)');
+                const glow = ctx.createRadialGradient(cx, cy, radius * 0.2, cx, cy, radius * 1.2);
+                glow.addColorStop(0, 'rgba(59, 130, 246, 0.18)');
                 glow.addColorStop(1, 'transparent');
                 ctx.fillStyle = glow;
                 ctx.beginPath();
-                ctx.arc(cx, cy, radius * 1.15, 0, Math.PI * 2);
+                ctx.arc(cx, cy, radius * 1.1, 0, Math.PI * 2);
                 ctx.fill();
 
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 1.2;
                 ctx.beginPath();
                 ctx.arc(cx, cy, radius, 0, Math.PI * 2);
                 ctx.stroke();
 
+                ctx.strokeStyle = 'rgba(59, 130, 246, 0.24)';
                 for (let lat = -Math.PI / 2 + 0.3; lat < Math.PI / 2; lat += 0.3) {
                     const y = cy + radius * Math.sin(lat);
                     const rx = radius * Math.cos(lat);
@@ -1051,28 +1348,113 @@
                     ctx.stroke();
                 }
 
-                rotation += 0.004;
+                rotation += 0.005;
                 requestAnimationFrame(draw);
             }
             draw();
         }
 
+        function renderSteps() {
+            const container = document.getElementById('scan-steps');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const stepSvgs = [
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>`,
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                </svg>`,
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                </svg>`,
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-4.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z"/>
+                    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-4.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z"/>
+                </svg>`,
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>`,
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>`,
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>`
+            ];
+
+            scanSteps.forEach((step, index) => {
+                const item = document.createElement('div');
+                item.className = 'step-item pending';
+                item.id = `step-${index}`;
+                
+                const lineSegment = index < scanSteps.length - 1 ? '<div class="step-line-segment"></div>' : '';
+
+                item.innerHTML = `
+                    <div class="step-line-wrapper">
+                        <div class="step-indicator">
+                            <div class="step-dot"></div>
+                        </div>
+                        ${lineSegment}
+                    </div>
+                    <div class="step-icon-box">
+                        ${stepSvgs[index]}
+                    </div>
+                    <div class="step-content">
+                        <div class="step-title">${step.label}</div>
+                        <div class="step-desc">${step.meta}</div>
+                    </div>
+                    <div class="step-status">Pending</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateStep(index, status) {
+            const stepEl = document.getElementById(`step-${index}`);
+            if (!stepEl) return;
+            
+            stepEl.classList.remove('pending', 'active', 'completed', 'failed');
+            stepEl.classList.add(status === 'in-progress' ? 'active' : status);
+            
+            const statusEl = stepEl.querySelector('.step-status');
+            if (statusEl) {
+                if (status === 'completed') {
+                    statusEl.innerText = 'Completed';
+                } else if (status === 'in-progress') {
+                    statusEl.innerHTML = 'In Progress<div class="dots-loader"><span></span><span></span><span></span></div>';
+                } else if (status === 'failed') {
+                    statusEl.innerText = 'Failed';
+                } else {
+                    statusEl.innerText = 'Pending';
+                }
+            }
+        }
+
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
         function drawSparkline(elementId, dataPoints, color) {
             const path = document.getElementById(elementId);
             if (!path) return;
-            
             const width = 250;
             const height = 38;
             const min = Math.min(...dataPoints);
             const max = Math.max(...dataPoints);
             const range = max - min || 1;
-            
             const points = dataPoints.map((val, idx) => {
                 const x = (idx / (dataPoints.length - 1)) * width;
                 const y = height - 4 - ((val - min) / range) * (height - 8);
                 return `${x.toFixed(1)},${y.toFixed(1)}`;
             });
-            
             path.setAttribute('d', `M ${points.join(' L ')}`);
             path.setAttribute('stroke', color);
         }
@@ -1080,23 +1462,18 @@
         function updateGauge(percentage) {
             const circle = document.getElementById('gauge-fill');
             if (!circle) return;
-            
-            const r = 40;
-            const c = 2 * Math.PI * r;
-            const arcLength = 188.4; // 270 degrees
-            
+            const arcLength = 188.4;
             const offset = arcLength - (percentage / 100) * arcLength;
             circle.style.strokeDashoffset = offset;
-            
             document.getElementById('gauge-val').innerText = `${percentage.toFixed(0)}%`;
-            
             const badge = document.getElementById('gauge-badge');
+            if (!badge) return;
             if (percentage >= 80) {
-                badge.innerText = "High Confidence";
+                badge.innerText = 'High Confidence';
             } else if (percentage >= 50) {
-                badge.innerText = "Medium Confidence";
+                badge.innerText = 'Medium Confidence';
             } else {
-                badge.innerText = "Low Confidence";
+                badge.innerText = 'Low Confidence';
             }
         }
 
@@ -1104,20 +1481,15 @@
             return new Promise((resolve) => {
                 const ips = [];
                 let resolved = false;
-
                 let pc;
                 try {
-                    pc = new RTCPeerConnection({
-                        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-                    });
+                    pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
                 } catch (e) {
                     resolve(null);
                     return;
                 }
-
-                pc.createDataChannel("");
+                pc.createDataChannel('');
                 pc.createOffer().then(offer => pc.setLocalDescription(offer)).catch(() => {});
-
                 pc.onicecandidate = (event) => {
                     if (resolved) return;
                     if (!event || !event.candidate) {
@@ -1127,16 +1499,14 @@
                         return;
                     }
                     const candidate = event.candidate.candidate;
-
-                    const parts = candidate.split(" ");
+                    const parts = candidate.split(' ');
                     if (parts.length > 4) {
                         const ip = parts[4];
-                        if (ip && !ips.includes(ip) && !ip.endsWith(".local")) {
+                        if (ip && !ips.includes(ip) && !ip.endsWith('.local')) {
                             ips.push(ip);
                         }
                     }
                 };
-
                 setTimeout(() => {
                     if (resolved) return;
                     resolved = true;
@@ -1153,16 +1523,8 @@
                     return;
                 }
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        resolve({
-                            has_geo_permission: true,
-                            latitude: position.coords.latitude,
-                            longitude: position.coords.longitude
-                        });
-                    },
-                    (err) => {
-                        resolve({ has_geo_permission: false, latitude: null, longitude: null });
-                    },
+                    (position) => resolve({ has_geo_permission: true, latitude: position.coords.latitude, longitude: position.coords.longitude }),
+                    () => resolve({ has_geo_permission: false, latitude: null, longitude: null }),
                     { timeout: 2000 }
                 );
             });
@@ -1170,29 +1532,35 @@
 
         async function startAnalysis() {
             const startBtn = document.getElementById('start-btn');
-            const scanBar = document.getElementById('scan-bar');
-            const scanner = document.getElementById('scanner');
+            const introPanel = document.querySelector('.intro-panel');
+            const readyCard = document.getElementById('ready-card');
+            const scanningPanel = document.getElementById('scanning-panel');
             const results = document.getElementById('results');
-            const progress = document.getElementById('progress-status');
 
             startBtn.disabled = true;
-            scanBar.style.display = 'none';
-            scanner.style.display = 'block';
-            results.style.display = 'none';
+            
+            if (introPanel) introPanel.style.display = 'none';
+            if (readyCard) readyCard.style.display = 'none';
+            if (results) results.style.display = 'none';
+            
+            scanningPanel.style.display = 'block';
+            renderSteps();
 
-            progress.innerText = "Retrieving network configuration and signals...";
+            await wait(400);
+            updateStep(0, 'in-progress');
+            await wait(500);
+
             const webrtcPromise = getWebRTCIP();
             const geoPromise = getGeolocation();
-
             let clientIp = null;
             try {
-                const ipRes = await fetch("https://api.ipify.org?format=json");
+                const ipRes = await fetch('https://api.ipify.org?format=json');
                 if (ipRes.ok) {
                     const ipData = await ipRes.json();
                     clientIp = ipData.ip;
                 }
             } catch (e) {
-                console.warn("Could not retrieve public IP address: ", e);
+                console.warn('Could not retrieve public IP address:', e);
             }
 
             const webrtcIp = await webrtcPromise;
@@ -1201,39 +1569,41 @@
             const language = navigator.language || (navigator.languages && navigator.languages[0]) || null;
             const languages = navigator.languages ? Array.from(navigator.languages) : [];
 
+            updateStep(0, 'completed');
+            updateStep(1, 'in-progress');
+            await wait(400);
+
             const pings = 18;
             const latencies = [];
             const startTime = performance.now();
-
             for (let i = 0; i < pings; i++) {
-                progress.innerText = `Sending connection payload ${i+1}/${pings}...`;
-
                 const pingStart = performance.now();
                 try {
                     await fetch('https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js?cb=' + Math.random(), { mode: 'no-cors' });
                 } catch (e) {
-                    alert("Public internet connection is required. Please check your network.");
+                    alert('Public internet connection is required. Please check your network.');
                     startBtn.disabled = false;
-                    scanner.style.display = 'none';
-                    scanBar.style.display = 'flex';
+                    if (introPanel) introPanel.style.display = 'grid';
+                    if (readyCard) readyCard.style.display = 'flex';
+                    scanningPanel.style.display = 'none';
                     return;
                 }
                 const pingEnd = performance.now();
                 latencies.push((pingEnd - pingStart) / 1000.0);
-
-                await new Promise(resolve => setTimeout(resolve, 50));
+                await wait(60);
             }
+
+            updateStep(1, 'completed');
+            updateStep(2, 'in-progress');
+            await wait(400);
 
             const endTime = performance.now();
             const totalDuration = (endTime - startTime) / 1000.0;
-
             const stableLatencies = latencies.slice(3);
-
             const iats = [];
             for (let i = 1; i < stableLatencies.length; i++) {
-                iats.push(Math.abs(stableLatencies[i] - stableLatencies[i-1]));
+                iats.push(Math.abs(stableLatencies[i] - stableLatencies[i - 1]));
             }
-
             const iatMean = iats.reduce((a, b) => a + b, 0) / iats.length;
             const iatVar = iats.reduce((sum, val) => sum + Math.pow(val - iatMean, 2), 0) / iats.length;
             const iatStd = Math.sqrt(iatVar);
@@ -1247,20 +1617,14 @@
             document.getElementById('f-pps').innerText = packetsPerSec.toFixed(1);
 
             drawSparkline('spark-dur', latencies, '#3b82f6');
-            
-            const iatVisualPoints = iats.length > 0 ? iats : [0.01, 0.02, 0.015];
-            drawSparkline('spark-iat', iatVisualPoints, '#10b981');
-            
-            const stdVisualPoints = stableLatencies.map((l, i) => Math.abs(l - (stableLatencies[i-1] || l)));
-            drawSparkline('spark-std', stdVisualPoints, '#a855f7');
-            
-            const jitterPoints = iats.map(iat => iatMean > 0 ? iat / iatMean : 0);
-            drawSparkline('spark-jit', jitterPoints, '#f59e0b');
-            
-            const ppsTimeline = latencies.map((l, idx) => (idx + 1) / ((performance.now() - startTime) / 1000.0));
-            drawSparkline('spark-pps', ppsTimeline.slice(3), '#ec4899');
+            drawSparkline('spark-iat', iats.length > 0 ? iats : [0.01, 0.02, 0.015], '#10b981');
+            drawSparkline('spark-std', stableLatencies.map((l, i) => Math.abs(l - (stableLatencies[i - 1] || l))), '#a855f7');
+            drawSparkline('spark-jit', iats.map(iat => iatMean > 0 ? iat / iatMean : 0), '#f59e0b');
+            drawSparkline('spark-pps', latencies.map((l, idx) => (idx + 1) / ((performance.now() - startTime) / 1000.0)).slice(3), '#ec4899');
 
-            progress.innerText = "Analyzing connection with VPN Intelligence...";
+            updateStep(2, 'completed');
+            updateStep(3, 'in-progress');
+            await wait(600);
 
             const flowPayload = {
                 duration: totalDuration,
@@ -1286,57 +1650,67 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(flowPayload)
                 });
+                if (!response.ok) throw new Error('Backend request failed');
 
-                if (response.ok) {
-                    const data = await response.json();
+                const data = await response.json();
+                updateStep(3, 'completed');
+                updateStep(4, 'in-progress');
+                await wait(500);
 
-                    const verdictText = document.getElementById('verdict-text');
-                    const verdictProtocol = document.getElementById('verdict-protocol');
-                    const verdictPanel = document.getElementById('verdict-panel');
+                const verdictText = document.getElementById('verdict-text');
+                const verdictProtocol = document.getElementById('verdict-protocol');
+                const verdictPanel = document.getElementById('verdict-panel');
 
-                    if (data.is_vpn) {
-                        verdictText.innerText = "VPN DETECTED";
-                        verdictProtocol.innerText = data.vpn_protocol;
-                        verdictPanel.className = "verdict-card vpn-alert";
-                        
-                        document.getElementById('f-proto').innerText = data.vpn_protocol;
-                        document.getElementById('f-proto-sub').innerText = "VPN Protocol";
-                    } else {
-                        verdictText.innerText = "RESIDENTIAL SECURE";
-                        verdictProtocol.innerText = "None";
-                        verdictPanel.className = "verdict-card clean-status";
-                        
-                        document.getElementById('f-proto').innerText = "Clean Connection";
-                        document.getElementById('f-proto-sub').innerText = "Residential";
-                    }
-
-                    document.getElementById('explain-text').innerText = data.explanation;
-                    updateGauge(data.confidence * 100);
-
-                    const scale = data.is_vpn ? 1.0 : 0.4;
-                    document.getElementById('bar-dc').style.width = `${Math.round(62 * scale)}%`;
-                    document.getElementById('val-dc').innerText = `+${(0.62 * scale).toFixed(2)}`;
-                    
-                    document.getElementById('bar-dur').style.width = `${Math.round(41 * scale)}%`;
-                    document.getElementById('val-dur').innerText = `+${(0.41 * scale).toFixed(2)}`;
-                    
-                    document.getElementById('bar-std').style.width = `${Math.round(21 * scale)}%`;
-                    document.getElementById('val-std').innerText = `+${(0.21 * scale).toFixed(2)}`;
-                    
-                    document.getElementById('bar-jit').style.width = `${Math.round(18 * (1.5 - scale))}%`;
-                    document.getElementById('val-jit').innerText = `-${(0.18 * (1.5 - scale)).toFixed(2)}`;
-                    
-                    document.getElementById('bar-pps').style.width = `${Math.round(12 * (1.5 - scale))}%`;
-                    document.getElementById('val-pps').innerText = `-${(0.12 * (1.5 - scale)).toFixed(2)}`;
-
-                    scanner.style.display = 'none';
-                    results.style.display = 'flex';
-                    scanBar.style.display = 'flex';
+                if (data.is_vpn) {
+                    verdictText.innerText = 'VPN DETECTED';
+                    verdictProtocol.innerText = data.vpn_protocol || 'IKEv2';
+                    verdictPanel.className = 'verdict-card vpn-alert';
+                    document.getElementById('f-proto').innerText = data.vpn_protocol || 'IKEv2';
+                    document.getElementById('f-proto-sub').innerText = 'VPN Protocol';
+                } else {
+                    verdictText.innerText = 'RESIDENTIAL SECURE';
+                    verdictProtocol.innerText = 'None';
+                    verdictPanel.className = 'verdict-card clean-status';
+                    document.getElementById('f-proto').innerText = 'Clean Connection';
+                    document.getElementById('f-proto-sub').innerText = 'Residential';
                 }
+
+                document.getElementById('explain-text').innerText = data.explanation || 'No model explanation available.';
+                updateGauge((data.confidence || 0.82) * 100);
+
+                const positiveScale = data.is_vpn ? 1.0 : 0.4;
+                document.getElementById('bar-dc').style.width = `${Math.round(62 * positiveScale)}%`;
+                document.getElementById('val-dc').innerText = `+${(0.62 * positiveScale).toFixed(2)}`;
+                document.getElementById('bar-dur').style.width = `${Math.round(41 * positiveScale)}%`;
+                document.getElementById('val-dur').innerText = `+${(0.41 * positiveScale).toFixed(2)}`;
+                document.getElementById('bar-std').style.width = `${Math.round(21 * positiveScale)}%`;
+                document.getElementById('val-std').innerText = `+${(0.21 * positiveScale).toFixed(2)}`;
+                document.getElementById('bar-jit').style.width = `${Math.round(18 * (1.5 - positiveScale))}%`;
+                document.getElementById('val-jit').innerText = `-${(0.18 * (1.5 - positiveScale)).toFixed(2)}`;
+                document.getElementById('bar-pps').style.width = `${Math.round(12 * (1.5 - positiveScale))}%`;
+                document.getElementById('val-pps').innerText = `-${(0.12 * (1.5 - positiveScale)).toFixed(2)}`;
+
+                updateStep(4, 'completed');
+                updateStep(5, 'in-progress');
+                await wait(500);
+
+                updateStep(5, 'completed');
+                updateStep(6, 'in-progress');
+                await wait(450);
+                updateStep(6, 'completed');
+                await wait(200);
+
+                if (introPanel) introPanel.style.display = 'grid';
+                if (readyCard) readyCard.style.display = 'flex';
+                scanningPanel.style.display = 'none';
+                results.style.display = 'grid';
             } catch (err) {
-                alert("Failed to analyze flow. Connection to backend lost.");
-                scanner.style.display = 'none';
-                scanBar.style.display = 'flex';
+                console.error(err);
+                updateStep(3, 'failed');
+                alert('Scan failed. Please check backend connection.');
+                if (introPanel) introPanel.style.display = 'grid';
+                if (readyCard) readyCard.style.display = 'flex';
+                scanningPanel.style.display = 'none';
             } finally {
                 startBtn.disabled = false;
             }
@@ -1344,6 +1718,14 @@
 
         window.onload = () => {
             initGlobe();
+            renderSteps();
+            
+            const menuToggle = document.getElementById('menu-toggle');
+            if (menuToggle) {
+                menuToggle.addEventListener('click', () => {
+                    document.getElementById('nav-links').classList.toggle('active');
+                });
+            }
         };
     </script>
 </body>

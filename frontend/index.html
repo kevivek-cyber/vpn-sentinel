@@ -326,6 +326,118 @@
         .nav-links a:hover {
             color: #ffffff;
         }
+
+        .mobile-menu-toggle {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: white;
+            background: none !important;
+            -webkit-background-clip: unset !important;
+            -webkit-text-fill-color: var(--text-main) !important;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-container {
+                grid-template-columns: repeat(2, 1fr);
+                padding: 24px;
+            }
+            .simulator-panel, .log-panel {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 16px 20px;
+                position: relative;
+            }
+
+            .mobile-menu-toggle {
+                display: flex;
+            }
+
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 80px;
+                right: 20px;
+                background: rgba(15, 23, 42, 0.95);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                padding: 16px;
+                gap: 10px;
+                z-index: 1000;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(var(--glass-blur));
+                width: 200px;
+                margin-left: 0;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links a {
+                margin: 0;
+                padding: 10px 14px;
+                width: 100%;
+                text-align: left;
+                border-radius: 8px;
+                transition: background 0.2s ease;
+                border-bottom: none !important;
+            }
+
+            .nav-links a:hover {
+                background: rgba(255, 255, 255, 0.05);
+            }
+
+            .simulator-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .chart-container-large, .chart-container-small {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+                padding: 16px;
+                gap: 16px;
+            }
+            .stat-card, .chart-container-large, .chart-container-small, .simulator-panel, .log-panel {
+                grid-column: span 1;
+            }
+            .simulator-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -334,13 +446,23 @@
         <div style="display: flex; align-items: center;">
             <div class="logo-container">
                 <div class="logo-icon">VS</div>
-                <div class="logo-text">VPN-SENTINEL</div>
+                <div class="logo-text">
+                    <span>VPN-</span>
+                    <span>SENTINEL</span>
+                </div>
             </div>
-            <div class="nav-links">
-                <a href="index.html" style="color: #ffffff; border-bottom: 2px solid var(--accent-primary); padding-bottom: 4px;">Live Sniffer</a>
-                <a href="live_flow_test.html">Browser ML Scan</a>
-                <a href="ip_checker.html">IP Threat Intel</a>
-            </div>
+        </div>
+        <button class="mobile-menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+        <div class="nav-links" id="nav-links">
+            <a href="index.html" style="color: #ffffff; border-bottom: 2px solid var(--accent-primary); padding-bottom: 4px;">Live Sniffer</a>
+            <a href="live_flow_test.html">Browser ML Scan</a>
+            <a href="ip_checker.html">IP Threat Intel</a>
         </div>
         <div class="status-badge" id="backend-status">
             <div class="status-dot"></div>
@@ -651,6 +773,13 @@
             fetchStats();
 
             setInterval(fetchStats, 3000);
+
+            const menuToggle = document.getElementById('menu-toggle');
+            if (menuToggle) {
+                menuToggle.addEventListener('click', () => {
+                    document.getElementById('nav-links').classList.toggle('active');
+                });
+            }
         };
     </script>
 </body>
