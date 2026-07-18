@@ -21,33 +21,37 @@ class TestVPNSentinelPipeline(unittest.TestCase):
         self.features = joblib.load(self.features_path)
 
     def test_model_inputs(self):
-
-        self.assertEqual(len(self.features), 8)
+        self.assertEqual(len(self.features), 16)
         self.assertIn('duration', self.features)
         self.assertIn('fwd_pkt_len_mean', self.features)
         self.assertIn('packets_per_sec', self.features)
 
     def test_stage1_prediction(self):
-
-        flow_iat_mean = 0.6
-        flow_iat_std = 0.08
+        flow_iat_mean = 0.137
+        flow_iat_std = 0.15
         web_flow = pd.DataFrame([{
-            'duration': 5.2,
-            'fwd_pkt_len_mean': 280.0,
-            'bwd_pkt_len_mean': 750.0,
+            'duration': 0.411,
+            'fwd_pkt_len_mean': 22.0,
+            'bwd_pkt_len_mean': 22.0,
             'flow_iat_mean': flow_iat_mean,
             'flow_iat_std': flow_iat_std,
-            'jitter_ratio': flow_iat_std / flow_iat_mean,
-            'packets_per_sec': 45.0,
-            'bytes_per_sec': 45.0 * (280.0 + 750.0)
+            'jitter_ratio': 1.09,
+            'packets_per_sec': 4.86,
+            'bytes_per_sec': 106.95,
+            'fwd_pkt_len_max': 44.0,
+            'fwd_pkt_len_min': 0.0,
+            'bwd_pkt_len_max': 44.0,
+            'bwd_pkt_len_min': 0.0,
+            'fwd_pkt_len_std': 15.0,
+            'bwd_pkt_len_std': 15.0,
+            'flow_iat_max': 0.3,
+            'flow_iat_min': 0.001
         }])[self.features]
 
         pred_s1 = self.model_s1.predict(web_flow)[0]
-
         self.assertEqual(pred_s1, 0, "Web flow incorrectly classified as VPN")
 
     def test_stage2_prediction(self):
-
         flow_iat_mean = 0.08
         flow_iat_std = 0.04
         wg_flow = pd.DataFrame([{
@@ -58,14 +62,21 @@ class TestVPNSentinelPipeline(unittest.TestCase):
             'flow_iat_std': flow_iat_std,
             'jitter_ratio': flow_iat_std / flow_iat_mean,
             'packets_per_sec': 400.0,
-            'bytes_per_sec': 400.0 * (855.0 + 945.0)
+            'bytes_per_sec': 400.0 * (855.0 + 945.0),
+            'fwd_pkt_len_max': -1.0,
+            'fwd_pkt_len_min': -1.0,
+            'bwd_pkt_len_max': -1.0,
+            'bwd_pkt_len_min': -1.0,
+            'fwd_pkt_len_std': -1.0,
+            'bwd_pkt_len_std': -1.0,
+            'flow_iat_max': -1.0,
+            'flow_iat_min': -1.0
         }])[self.features]
 
         pred_s1 = self.model_s1.predict(wg_flow)[0]
         self.assertEqual(pred_s1, 1, "WireGuard flow not detected as VPN")
 
         pred_s2 = self.model_s2.predict(wg_flow)[0]
-
         self.assertEqual(pred_s2, 1, "VPN protocol not fingerprinted as WireGuard")
 
 if __name__ == '__main__':
