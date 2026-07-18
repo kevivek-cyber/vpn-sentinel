@@ -112,7 +112,10 @@
     document.body.appendChild(container);
 
 
-    const API_URL = "http://127.0.0.1:8000/api/stats";
+    const scriptTag = document.currentScript;
+    const scriptSrc = scriptTag ? scriptTag.src : "";
+    const backendOrigin = (scriptSrc && scriptSrc.startsWith("http")) ? new URL(scriptSrc).origin : "http://127.0.0.1:8000";
+    const API_URL = `${backendOrigin}/api/stats`;
 
     async function updateWidget() {
         try {
