@@ -61,8 +61,9 @@ DATACENTER_KEYWORDS = [
     "digitalocean", "m247", "linode", "ovh", "hetzner", "colocrossing", "choopa",
     "clouvider", "leaseweb", "private internet access", "nordvpn", "expressvpn",
     "surfshark", "windscribe", "vpn", "proxy", "tor", "exit-node", "datacenter",
-    "hosting", "vps", "hostkey", "amazon", "aws", "microsoft", "google", "servers",
-    "tunnel", "obfuscated", "secure", "hide"
+    "hosting", "vps", "hostkey", "aws", "azure", "google cloud", "google-cloud", 
+    "amazon web services", "microsoft corporation", "ovh SAS", "scaleway", "vultr",
+    "obfuscated", "hide my ass", "hidemyass"
 ]
 
 def is_private_ip(ip: Optional[str]) -> bool:
