@@ -118,6 +118,17 @@ class FlowInput(BaseModel):
     flow_iat_mean: float = Field(..., example=0.08)
     flow_iat_std: float = Field(..., example=0.04)
     packets_per_sec: float = Field(..., example=400.0)
+    
+    # Extra parameters from CICFlowMeter
+    fwd_pkt_len_max: Optional[float] = Field(default=-1.0, example=1200.0)
+    fwd_pkt_len_min: Optional[float] = Field(default=-1.0, example=0.0)
+    bwd_pkt_len_max: Optional[float] = Field(default=-1.0, example=1400.0)
+    bwd_pkt_len_min: Optional[float] = Field(default=-1.0, example=0.0)
+    fwd_pkt_len_std: Optional[float] = Field(default=-1.0, example=250.0)
+    bwd_pkt_len_std: Optional[float] = Field(default=-1.0, example=300.0)
+    flow_iat_max: Optional[float] = Field(default=-1.0, example=1.2)
+    flow_iat_min: Optional[float] = Field(default=-1.0, example=0.0)
+    
     is_browser: bool = Field(default=False, description="Use timing-only model suitable for browser measurements")
     client_ip: Optional[str] = Field(default=None, description="Client IP address")
     webrtc_ip: Optional[str] = Field(default=None, description="WebRTC revealed IP")
