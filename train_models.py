@@ -125,22 +125,21 @@ def apply_feature_noise(X_df, random_state=42):
     np.random.seed(random_state)
     X_pert = X_df.copy()
     perturb_cols = [
-        'is_datacenter_ip', 'is_known_vpn_ip', 'timezone_mismatch_score', 
-        'language_mismatch_score', 'webrtc_ip_mismatch', 'webrtc_blocked', 
-        'proxy_header_detected'
+        'timezone_mismatch_score', 'language_mismatch_score', 
+        'webrtc_ip_mismatch', 'webrtc_blocked', 'proxy_header_detected'
     ]
     for col in perturb_cols:
         if col in X_pert.columns:
-            mask = np.random.rand(len(X_pert)) < 0.3
+            mask = np.random.rand(len(X_pert)) < 0.20
             X_pert.loc[mask, col] = (1 - X_pert.loc[mask, col]).astype(int)
     return X_pert
 
 # Augment train_br_df with clean but high-latency (slow) samples to handle 4G/LTE residential connections
 clean_br_df = train_br_df[train_br_df['is_vpn'] == 0].copy()
 np.random.seed(42)
-slow_clean_br = clean_br_df.sample(3000, replace=True).copy()
+slow_clean_br = clean_br_df.sample(800, replace=True).copy()
 slow_clean_br['flow_iat_mean'] = np.random.uniform(0.12, 0.35, size=len(slow_clean_br))
-slow_clean_br['jitter_ratio'] = np.random.uniform(0.3, 0.95, size=len(slow_clean_br))
+slow_clean_br['jitter_ratio'] = np.random.uniform(0.3, 0.85, size=len(slow_clean_br))
 slow_clean_br['flow_iat_std'] = slow_clean_br['flow_iat_mean'] * slow_clean_br['jitter_ratio']
 slow_clean_br['duration'] = np.random.uniform(10.0, 20.0, size=len(slow_clean_br))
 slow_clean_br['packets_per_sec'] = 18.0 / slow_clean_br['duration']
