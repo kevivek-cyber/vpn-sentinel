@@ -1886,19 +1886,7 @@
             });
         }
 
-        function getGeolocation() {
-            return new Promise((resolve) => {
-                if (!navigator.geolocation) {
-                    resolve({ has_geo_permission: false, latitude: null, longitude: null });
-                    return;
-                }
-                navigator.geolocation.getCurrentPosition(
-                    (position) => resolve({ has_geo_permission: true, latitude: position.coords.latitude, longitude: position.coords.longitude }),
-                    () => resolve({ has_geo_permission: false, latitude: null, longitude: null }),
-                    { timeout: 2000 }
-                );
-            });
-        }
+
 
         async function startAnalysis() {
             const startBtn = document.getElementById('start-btn');
@@ -1921,7 +1909,6 @@
             await wait(500);
 
             const webrtcPromise = getWebRTCIP();
-            const geoPromise = getGeolocation();
             let clientIp = null;
             try {
                 const ipRes = await fetch('https://api.ipify.org?format=json');
@@ -1934,7 +1921,6 @@
             }
 
             const webrtcIp = await webrtcPromise;
-            const geoInfo = await geoPromise;
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const language = navigator.language || (navigator.languages && navigator.languages[0]) || null;
             const languages = navigator.languages ? Array.from(navigator.languages) : [];
@@ -2008,10 +1994,7 @@
                 webrtc_ip: webrtcIp,
                 timezone: timezone,
                 language: language,
-                languages: languages,
-                latitude: geoInfo.latitude,
-                longitude: geoInfo.longitude,
-                has_geo_permission: geoInfo.has_geo_permission
+                languages: languages
             };
 
             let data;
