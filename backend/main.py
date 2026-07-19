@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import shap
 from fastapi import FastAPI, Depends, HTTPException, Header, Query
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -404,4 +405,29 @@ def get_history(db: Session = Depends(get_db), tenant_id: str = Depends(get_tena
             "explanation": log.explanation
         } for log in logs
     ]
+@app.get("/", response_class=HTMLResponse)
+def read_dashboard():
+    with open("frontend/index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/scan", response_class=HTMLResponse)
+def read_scan():
+    with open("frontend/live_flow_test.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/ip", response_class=HTMLResponse)
+def read_ip():
+    with open("frontend/ip_checker.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/docs", response_class=HTMLResponse)
+def read_docs():
+    with open("frontend/integration.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/how", response_class=HTMLResponse)
+def read_how():
+    with open("frontend/how_it_works.html", "r", encoding="utf-8") as f:
+        return f.read()
+
 app.mount("/", StaticFiles(directory="frontend", html=True), name="static")
