@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN-Sentinel | Integration Guide</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #03050a;
+            --panel-bg: rgba(10, 15, 30, 0.45);
+            --sidebar-bg: rgba(6, 9, 18, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-primary: #9d4edd;
+            --accent-vpn: #ff2a5f;
+            --accent-safe: #00f0ff;
+            --text-main: #ffffff;
+            --text-muted: #a0aec0;
+            --glass-blur: 24px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(157, 78, 221, 0.12) 0px, transparent 40%),
+                radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.12) 0px, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(255, 42, 95, 0.08) 0px, transparent 40%);
+            background-attachment: fixed;
+            background-size: 200% 200%;
+            animation: bgShift 15s ease infinite;
+            color: var(--text-main);
+            overflow-x: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        @keyframes bgShift {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Sidebar Layout */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            backdrop-filter: blur(var(--glass-blur));
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            cursor: pointer;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-safe));
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            padding: 12px 16px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-links a.active {
+            background: rgba(157, 78, 221, 0.15);
+            color: white;
+            border-left: 4px solid var(--accent-primary);
+        }
+
+        .nav-links a:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(11, 15, 25, 0.2);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .header-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .doc-container {
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .glass-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-top: 1px solid rgba(255,255,255,0.15);
+            border-left: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #ffffff, #a0aec0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-top: 30px;
+            margin-bottom: 16px;
+            color: var(--accent-safe);
+        }
+
+        p {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            color: #d8b4fe;
+            overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-block::before {
+            content: 'HTML';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: rgba(157, 78, 221, 0.2);
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-bottom-left-radius: 8px;
+            border-top-right-radius: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+        }
+        
+        .code-block.json::before {
+            content: 'JSON';
+            background: rgba(0, 240, 255, 0.2);
+        }
+
+        .highlight {
+            color: var(--accent-safe);
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(255, 42, 95, 0.15);
+            color: var(--accent-vpn);
+            border: 1px solid rgba(255, 42, 95, 0.3);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .feature-card h3 {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="logo-container">
+            <div class="logo-icon">VS</div>
+            <div class="logo-text">
+                <span>VPN</span>
+                <span style="color: var(--accent-safe)">SENTINEL</span>
+            </div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html">📊 SOC Dashboard</a>
+            <a href="live_flow_test.html">🌐 Browser ML Scan</a>
+            <a href="ip_checker.html">🛡️ Threat Intel</a>
+            <a href="integration.html" class="active">🔌 Integration Guide</a>
+        </div>
+        
+        <div style="margin-top: auto; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid var(--border-color);">
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">System Health</p>
+            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+                <div style="width: 95%; height: 100%; background: var(--accent-safe);"></div>
+            </div>
+            <p style="font-size: 0.8rem; color: white; margin-top: 8px; text-align: right;">95% Optimal</p>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header>
+            <div class="header-title">Developer Documentation</div>
+        </header>
+
+        <div class="doc-container">
+            <div class="glass-panel" style="animation-delay: 0.1s;">
+                <h1>Embed the SOC Dashboard</h1>
+                <p>Welcome to the VPN Sentinel Developer Guide. Our platform is designed as a headless, multi-tenant security architecture. You can effortlessly embed our live SOC dashboard directly into your own website using our Web Widget.</p>
+                
+                <h2>1. The Embeddable iFrame Widget</h2>
+                <p>To integrate the dashboard into your company's web portal, simply copy and paste the following HTML snippet. Replace <span class="highlight">YOUR_API_KEY</span> with the Tenant ID provided to you during registration.</p>
+                
+                <div class="code-block">
+&lt;!-- VPN Sentinel Dashboard Widget --&gt;
+&lt;iframe 
+    src="https://vpn-sentinel.com/dashboard?tenant=YOUR_API_KEY" 
+    width="100%" 
+    height="800px" 
+    style="border: none; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);"
+&gt;&lt;/iframe&gt;
+                </div>
+
+                <h2>2. Dynamic White-Labeling (Custom Colors)</h2>
+                <p>Don't want the default Neon Cyberpunk theme? You can dynamically theme the dashboard to match your company's brand colors by passing a <span class="highlight">primary</span> hex code parameter in the URL (omit the # symbol).</p>
+                
+                <div class="code-block">
+&lt;!-- Example: Theming the dashboard with Orange (#FF5733) --&gt;
+&lt;iframe 
+    src="https://vpn-sentinel.com/dashboard?tenant=YOUR_API_KEY&primary=FF5733" 
+    width="100%" 
+    height="800px" 
+    style="border: none;"
+&gt;&lt;/iframe&gt;
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🎨 CSS Variable Overrides</h3>
+                        <p style="font-size: 0.9rem; margin: 0;">The URL parameter automatically hooks into our CSS root variables, injecting your primary color into the map markers, chart datasets, and glassmorphism hover glows.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h3>🔒 Data Isolation</h3>
+                        <p style="font-size: 0.9rem; margin: 0;">Because you are passing your unique Tenant API Key, the backend guarantees that the dashboard will only visualize your company's traffic logs.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel" style="animation-delay: 0.3s;">
+                <h1>REST API Integration</h1>
+                <p>If you prefer to build your own dashboard or integrate our ML engine directly into your firewalls, you can bypass the UI widget and use our Headless REST API.</p>
+
+                <h2>Traffic Ingestion Endpoint</h2>
+                <p><span class="badge">POST</span> <span style="font-family: monospace; color: white;">/api/ingest?tenant=YOUR_API_KEY</span></p>
+                <p>Send your network flow statistics here. Our ML model will instantly classify the packet signature.</p>
+                
+                <div class="code-block json">
+{
+    "duration": 15.2,
+    "fwd_pkt_len_mean": 850.0,
+    "bwd_pkt_len_mean": 950.0,
+    "flow_iat_mean": 0.08,
+    "flow_iat_std": 0.04,
+    "packets_per_sec": 400.0,
+    "client_ip": "192.168.1.50"
+}
+                </div>
+                
+                <h2>Response Format</h2>
+                <div class="code-block json">
+{
+    "is_vpn": true,
+    "vpn_protocol": "WireGuard",
+    "confidence": 0.985,
+    "explanation": "Protocol identified as WireGuard due to higher value of 'fwd_pkt_len_mean'."
+}
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
