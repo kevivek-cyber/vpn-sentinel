@@ -569,10 +569,11 @@
                     body: `
                         <p><strong>What it does:</strong> Analyzes high-level HTTP and Browser API telemetry to detect VPNs when raw network flows aren't available (e.g., when a user accesses a website).</p>
                         <p><strong>How it works:</strong> Instead of deep packet stats, it looks for environmental inconsistencies between the browser and the IP address.</p>
-                        <p><strong>Key Features Evaluated (12 total):</strong></p>
+                        <p><strong>Key Features Evaluated (14 total):</strong></p>
                         <ul>
                             <li>WebRTC IP mismatches (Internal vs External IP)</li>
                             <li>Timezone & Language Mismatch Scores (Browser config vs IP geolocation)</li>
+                            <li>HTML5 Geolocation vs. IP Address location mismatch</li>
                             <li>Datacenter IP lists and proxy headers</li>
                         </ul>
                     `

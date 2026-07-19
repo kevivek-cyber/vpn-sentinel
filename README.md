@@ -15,11 +15,11 @@ VPN Sentinel relies on a highly robust **Multi-Stage Inference Pipeline**. Depen
 ### 1️⃣ Traffic Interception & Feature Extraction
 The system captures traffic using a live packet sniffer (`live_monitor.py`) or receives browser-level telemetry via our REST API. It extracts complex features while disregarding payloads (protecting user privacy):
 - **Flow Statistics:** Packet Inter-Arrival Time (IAT) mean, variance, jitter ratios, and packet length distributions.
-- **Browser Context:** WebRTC IP leaks, timezone conflicts, and HTTP proxy headers.
+- **Browser Context:** WebRTC IP leaks, HTML5 Geolocation vs. IP mismatch, timezone conflicts, and HTTP proxy headers.
 
 ### 2️⃣ Stage 1: Anomaly Detection (VPN vs. Non-VPN)
 The extracted features are fed into our **Stage 1 Random Forest Classifier**. 
-- The model evaluates 16 flow features or 12 browser signals to determine if the traffic originates from a VPN/Proxy or a standard residential ISP.
+- The model evaluates 16 flow features or 14 browser signals to determine if the traffic originates from a VPN/Proxy or a standard residential ISP.
 - Trained against adversarial traffic-shaping (packet padding & timing delays), ensuring high evasion resistance.
 
 ### 3️⃣ Stage 2: Protocol Fingerprinting
@@ -87,7 +87,7 @@ Our models are trained on highly specific dimensions to prevent overfitting and 
 | Model Type | Features Used | Key Data Points |
 | :--- | :--- | :--- |
 | **Flow Model** | 16 Features | `duration`, `packets_per_sec`, Packet length constraints (min/max/std), IAT constraints (min/max/std), `jitter_ratio` |
-| **Browser Model** | 12 Features | Timing basics + `webrtc_blocked`, `timezone_mismatch_score`, `language_mismatch_score`, `is_datacenter_ip` |
+| **Browser Model** | 14 Features | Timing basics + `webrtc_blocked`, `timezone_mismatch_score`, `language_mismatch_score`, `is_datacenter_ip` |
 
 ---
 
