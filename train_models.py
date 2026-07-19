@@ -89,7 +89,7 @@ print("\n--- Training Browser-Level Classifiers (Timing-only features) ---")
 timing_features = [
     'duration', 'flow_iat_mean', 'flow_iat_std', 'jitter_ratio', 'packets_per_sec',
     'webrtc_ip_mismatch', 'webrtc_blocked', 'timezone_mismatch_score', 'language_mismatch_score',
-    'is_datacenter_ip', 'is_known_vpn_ip', 'proxy_header_detected'
+    'geo_ip_distance_km', 'has_geo_permission', 'is_datacenter_ip', 'is_known_vpn_ip', 'proxy_header_detected'
 ]
 def apply_feature_noise(X_df, random_state=42):
     np.random.seed(random_state)

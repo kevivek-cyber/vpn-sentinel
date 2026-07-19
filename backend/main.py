@@ -40,6 +40,7 @@ app.add_middleware(
 import urllib.request
 import json
 from fastapi import Request
+from math import radians, cos, sin, asin, sqrt
 DATACENTER_KEYWORDS = [
     "digitalocean", "m247", "linode", "ovh", "hetzner", "colocrossing", "choopa",
     "clouvider", "leaseweb", "private internet access", "nordvpn", "expressvpn",
@@ -149,6 +150,9 @@ class FlowInput(BaseModel):
     timezone: Optional[str] = Field(default=None, description="Client timezone")
     language: Optional[str] = Field(default=None, description="Client primary language")
     languages: Optional[List[str]] = Field(default=None, description="Client languages list")
+    latitude: Optional[float] = Field(default=None, description="Client latitude")
+    longitude: Optional[float] = Field(default=None, description="Client longitude")
+    has_geo_permission: bool = Field(default=False, description="Whether GPS permission was granted")
 def is_timezone_mismatch(tz_client: Optional[str], tz_ip: Optional[str]) -> int:
     if not tz_client or not tz_ip:
         return 0
@@ -247,6 +251,17 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         if country in country_lang_map:
             if browser_lang not in country_lang_map[country]:
                 language_mismatch_score = 1
+    geo_ip_distance_km = None
+    if flow.has_geo_permission and flow.latitude is not None and flow.longitude is not None:
+        ip_lat = http_info.get("lat")
+        ip_lon = http_info.get("lon")
+        if ip_lat is not None and ip_lon is not None:
+            lon1, lat1, lon2, lat2 = map(radians, [flow.longitude, flow.latitude, ip_lon, ip_lat])
+            dlon = lon2 - lon1
+            dlat = lat2 - lat1
+            a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+            c = 2 * asin(sqrt(a))
+            geo_ip_distance_km = c * 6371.0
     flow_dict = flow.dict()
     flow_dict['bytes_per_sec'] = bytes_per_sec
     flow_dict['jitter_ratio'] = jitter_ratio
@@ -254,6 +269,8 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
     flow_dict['webrtc_blocked'] = webrtc_blocked
     flow_dict['timezone_mismatch_score'] = timezone_mismatch_score
     flow_dict['language_mismatch_score'] = language_mismatch_score
+    flow_dict['geo_ip_distance_km'] = geo_ip_distance_km if geo_ip_distance_km is not None else np.nan
+    flow_dict['has_geo_permission'] = 1 if flow.has_geo_permission else 0
     flow_dict['is_datacenter_ip'] = is_datacenter_ip
     flow_dict['is_known_vpn_ip'] = is_known_vpn_ip
     flow_dict['proxy_header_detected'] = proxy_header_detected
