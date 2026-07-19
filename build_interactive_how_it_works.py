@@ -8,7 +8,7 @@ if start_idx != -1:
     footer = '\n    </div>\n</div>\n</body>\n</html>'
     
     header = header.replace('class="active"', '')
-    header = header.replace('<a href="how_it_works.html">📖 How It Works</a>', '<a href="how_it_works.html" class="active">📖 How It Works</a>')
+    header = header.replace('<a href="/how">📖 How It Works</a>', '<a href="/how" class="active">📖 How It Works</a>')
     
     # Add CSS for the interactive tree and modals
     css = """

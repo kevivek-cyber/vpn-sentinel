@@ -445,9 +445,9 @@ html_content = """<!DOCTYPE html>
         </div>
         
         <div class="nav-links">
-            <a href="index.html" class="active">📊 SOC Dashboard</a>
-            <a href="live_flow_test.html">🌐 Browser ML Scan</a>
-            <a href="ip_checker.html">🛡️ Threat Intel</a>
+            <a href="/" class="active">📊 SOC Dashboard</a>
+            <a href="/scan">🌐 Browser ML Scan</a>
+            <a href="/ip">🛡️ Threat Intel</a>
             <a href="#">⚙️ AI Settings</a>
             <a href="#">📄 Reports</a>
         </div>
