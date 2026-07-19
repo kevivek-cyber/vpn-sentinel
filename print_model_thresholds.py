@@ -1,18 +1,12 @@
 import joblib
 import numpy as np
-
 model = joblib.load('models/browser_stage1_model.pkl')
 features = joblib.load('models/timing_features.pkl')
-
 print("=== Inspection of Decision Trees in Random Forest ===")
 print(f"Features: {features}")
-
-
 importances = model.feature_importances_
 for f, imp in zip(features, importances):
     print(f"  Feature '{f}': Importance = {imp:.4f}")
-
-
 def make_case(data):
     import pandas as pd
     row = {
@@ -28,9 +22,6 @@ def make_case(data):
     }
     row.update(data)
     return pd.DataFrame([row])[features].fillna(-1.0)
-
-
-
 print("\n--- Scanning is_vpn boundary across Jitter Ratio values ---")
 for jit in [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.5, 0.6, 0.8, 1.0, 1.5, 2.0]:
     sample = make_case({

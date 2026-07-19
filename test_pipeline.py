@@ -2,30 +2,22 @@ import unittest
 import os
 import joblib
 import pandas as pd
-
 class TestVPNSentinelPipeline(unittest.TestCase):
-
     def setUp(self):
-
         self.stage1_path = "models/stage1_model.pkl"
         self.stage2_path = "models/stage2_model.pkl"
         self.features_path = "models/features.pkl"
-
-
         self.assertTrue(os.path.exists(self.stage1_path), "Stage 1 model pickle missing")
         self.assertTrue(os.path.exists(self.stage2_path), "Stage 2 model pickle missing")
         self.assertTrue(os.path.exists(self.features_path), "Features pickle missing")
-
         self.model_s1 = joblib.load(self.stage1_path)
         self.model_s2 = joblib.load(self.stage2_path)
         self.features = joblib.load(self.features_path)
-
     def test_model_inputs(self):
         self.assertEqual(len(self.features), 16)
         self.assertIn('duration', self.features)
         self.assertIn('fwd_pkt_len_mean', self.features)
         self.assertIn('packets_per_sec', self.features)
-
     def test_stage1_prediction(self):
         flow_iat_mean = 0.137
         flow_iat_std = 0.15
@@ -47,10 +39,8 @@ class TestVPNSentinelPipeline(unittest.TestCase):
             'flow_iat_max': 0.3,
             'flow_iat_min': 0.001
         }])[self.features]
-
         pred_s1 = self.model_s1.predict(web_flow)[0]
         self.assertEqual(pred_s1, 0, "Web flow incorrectly classified as VPN")
-
     def test_stage2_prediction(self):
         flow_iat_mean = 0.08
         flow_iat_std = 0.04
@@ -72,12 +62,9 @@ class TestVPNSentinelPipeline(unittest.TestCase):
             'flow_iat_max': -1.0,
             'flow_iat_min': -1.0
         }])[self.features]
-
         pred_s1 = self.model_s1.predict(wg_flow)[0]
         self.assertEqual(pred_s1, 1, "WireGuard flow not detected as VPN")
-
         pred_s2 = self.model_s2.predict(wg_flow)[0]
         self.assertEqual(pred_s2, 1, "VPN protocol not fingerprinted as WireGuard")
-
 if __name__ == '__main__':
     unittest.main()

@@ -2,20 +2,15 @@ import os
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-
-
 np.random.seed(42)
-
 def generate_flows(num_samples=5000):
     """
     Generates synthetic flow-level statistics for network traffic.
     """
     data = []
-
     for _ in range(num_samples):
         is_vpn = np.random.choice([0, 1], p=[0.6, 0.4])
         protocol = -1
-
         if is_vpn == 0:
             traffic_type = np.random.choice(['web', 'streaming', 'voip'])
             if traffic_type == 'web':
@@ -62,17 +57,14 @@ def generate_flows(num_samples=5000):
                 flow_iat_mean = np.random.normal(loc=0.25, scale=0.08)
                 flow_iat_std = np.random.normal(loc=0.28, scale=0.08)
                 packets_per_sec = np.random.normal(loc=120, scale=30)
-
         duration = max(0.01, duration)
         fwd_pkt_len_mean = max(40, fwd_pkt_len_mean)
         bwd_pkt_len_mean = max(40, bwd_pkt_len_mean)
         flow_iat_mean = max(0.001, flow_iat_mean)
         flow_iat_std = max(0.0005, flow_iat_std)
         packets_per_sec = max(1.0, packets_per_sec)
-
         bytes_per_sec = packets_per_sec * (fwd_pkt_len_mean + bwd_pkt_len_mean)
         jitter_ratio = flow_iat_std / flow_iat_mean
-
         data.append({
             'duration': duration,
             'fwd_pkt_len_mean': fwd_pkt_len_mean,
@@ -85,28 +77,21 @@ def generate_flows(num_samples=5000):
             'is_vpn': is_vpn,
             'vpn_protocol': protocol
         })
-
     df = pd.DataFrame(data)
     return df
-
 def generate_browser_flows(num_samples=5000):
     """
     Generates realistic browser-level HTTP ping test characteristics and multi-signal metadata.
     """
     data = []
-
     for _ in range(num_samples):
         is_vpn = np.random.choice([0, 1], p=[0.5, 0.5])
         protocol = -1
-
         if is_vpn == 0:
-
             flow_iat_mean = np.random.uniform(0.005, 0.150)
             jitter_ratio = np.random.uniform(0.05, 1.45)
             flow_iat_std = flow_iat_mean * jitter_ratio
             duration = np.random.normal(loc=2.0, scale=0.5)
-
-
             webrtc_blocked = np.random.choice([0, 1], p=[0.95, 0.05])
             webrtc_ip_mismatch = 0
             timezone_mismatch_score = 0
@@ -120,26 +105,21 @@ def generate_browser_flows(num_samples=5000):
             is_known_vpn_ip = 0
             proxy_header_detected = 0
         else:
-
             protocol = np.random.choice([0, 1, 2], p=[0.4, 0.4, 0.2])
             flow_iat_mean = np.random.uniform(0.005, 0.350)
             jitter_ratio = np.random.uniform(0.50, 2.50)
             flow_iat_std = flow_iat_mean * jitter_ratio
-
             if protocol == 0:
                 duration = np.random.normal(loc=2.2, scale=0.3)
             elif protocol == 1:
                 duration = np.random.normal(loc=1.8, scale=0.2)
             else:
                 duration = np.random.normal(loc=2.6, scale=0.4)
-
-
             webrtc_blocked = np.random.choice([0, 1], p=[0.60, 0.40])
             if webrtc_blocked == 1:
                 webrtc_ip_mismatch = 0
             else:
                 webrtc_ip_mismatch = np.random.choice([0, 1], p=[0.30, 0.70])
-
             timezone_mismatch_score = np.random.choice([0, 1], p=[0.20, 0.80])
             language_mismatch_score = np.random.choice([0, 1], p=[0.30, 0.70])
             has_geo_permission = np.random.choice([0, 1], p=[0.70, 0.30])
@@ -147,16 +127,13 @@ def generate_browser_flows(num_samples=5000):
                 geo_ip_distance_km = max(50.0, np.random.normal(loc=1500.0, scale=800.0))
             else:
                 geo_ip_distance_km = np.nan
-
             is_datacenter_ip = np.random.choice([0, 1], p=[0.15, 0.85])
             is_known_vpn_ip = np.random.choice([0, 1], p=[0.25, 0.75])
             proxy_header_detected = np.random.choice([0, 1], p=[0.80, 0.20])
-
         duration = max(0.2, duration)
         flow_iat_mean = max(0.001, flow_iat_mean)
         flow_iat_std = max(0.0005, flow_iat_std)
         packets_per_sec = 15.0 / duration
-
         data.append({
             'duration': duration,
             'fwd_pkt_len_mean': 350.0,
@@ -178,10 +155,8 @@ def generate_browser_flows(num_samples=5000):
             'is_vpn': is_vpn,
             'vpn_protocol': protocol
         })
-
     df = pd.DataFrame(data)
     return df
-
 if __name__ == '__main__':
     os.makedirs('data', exist_ok=True)
     print("Generating simulated network flows...")
@@ -189,14 +164,10 @@ if __name__ == '__main__':
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['is_vpn'])
     train_df.to_csv('data/train_flows.csv', index=False)
     test_df.to_csv('data/test_flows.csv', index=False)
-
     print("Generating browser-level latency flow datasets...")
     df_br = generate_browser_flows(15000)
     train_br, test_br = train_test_split(df_br, test_size=0.2, random_state=42, stratify=df_br['is_vpn'])
     train_br.to_csv('data/train_browser_flows.csv', index=False)
     test_br.to_csv('data/test_browser_flows.csv', index=False)
-
-
     df_br.to_csv('vpn_sentinel_training_data.csv', index=False)
-
     print("Data generation complete.")
