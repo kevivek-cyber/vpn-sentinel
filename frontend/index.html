@@ -595,7 +595,7 @@
         function initMap() {
             // Dark map tiles (CartoDB Dark Matter)
             threatMap = L.map('threatMap', {zoomControl: false, attributionControl: false}).setView([20, 0], 2);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
                 subdomains: 'abcd',
                 maxZoom: 20
             }).addTo(threatMap);
