@@ -33,11 +33,24 @@ class FlowTracker:
             duration = 0.01
         fwd_mean = sum(self.fwd_lengths) / len(self.fwd_lengths) if self.fwd_lengths else 0.0
         bwd_mean = sum(self.bwd_lengths) / len(self.bwd_lengths) if self.bwd_lengths else 0.0
+        
+        fwd_max = float(max(self.fwd_lengths)) if self.fwd_lengths else 0.0
+        fwd_min = float(min(self.fwd_lengths)) if self.fwd_lengths else 0.0
+        bwd_max = float(max(self.bwd_lengths)) if self.bwd_lengths else 0.0
+        bwd_min = float(min(self.bwd_lengths)) if self.bwd_lengths else 0.0
+        
+        fwd_std = (sum((x - fwd_mean) ** 2 for x in self.fwd_lengths) / len(self.fwd_lengths)) ** 0.5 if len(self.fwd_lengths) > 1 else 0.0
+        bwd_std = (sum((x - bwd_mean) ** 2 for x in self.bwd_lengths) / len(self.bwd_lengths)) ** 0.5 if len(self.bwd_lengths) > 1 else 0.0
+
         iats = []
         if len(self.timestamps) > 1:
             iats = [self.timestamps[i] - self.timestamps[i-1] for i in range(1, len(self.timestamps))]
         iat_mean = sum(iats) / len(iats) if iats else 0.1
         iat_std = (sum((x - iat_mean) ** 2 for x in iats) / len(iats)) ** 0.5 if len(iats) > 1 else 0.05
+        
+        iat_max = float(max(iats)) if iats else 0.1
+        iat_min = float(min(iats)) if iats else 0.1
+
         total_packets = len(self.fwd_lengths) + len(self.bwd_lengths)
         packets_per_sec = total_packets / duration
         return {
@@ -46,7 +59,15 @@ class FlowTracker:
             "bwd_pkt_len_mean": max(40.0, bwd_mean),
             "flow_iat_mean": max(0.001, iat_mean),
             "flow_iat_std": max(0.0005, iat_std),
-            "packets_per_sec": max(1.0, packets_per_sec)
+            "packets_per_sec": max(1.0, packets_per_sec),
+            "fwd_pkt_len_max": fwd_max,
+            "fwd_pkt_len_min": fwd_min,
+            "bwd_pkt_len_max": bwd_max,
+            "bwd_pkt_len_min": bwd_min,
+            "fwd_pkt_len_std": fwd_std,
+            "bwd_pkt_len_std": bwd_std,
+            "flow_iat_max": iat_max,
+            "flow_iat_min": iat_min
         }
 def packet_handler(pkt):
     if not pkt.haslayer(IP):
