@@ -15,7 +15,7 @@ VPN Sentinel relies on a highly robust **Multi-Stage Inference Pipeline**. Depen
 ### 1️⃣ Traffic Interception & Feature Extraction
 The system captures traffic using a live packet sniffer (`live_monitor.py`) or receives browser-level telemetry via our REST API. It extracts complex features while disregarding payloads (protecting user privacy):
 - **Flow Statistics:** Packet Inter-Arrival Time (IAT) mean, variance, jitter ratios, and packet length distributions.
-- **Browser Context:** WebRTC IP leaks, HTML5 Geolocation vs. IP mismatch, timezone conflicts, and HTTP proxy headers.
+- **Browser Context:** WebRTC IP leaks, timezone/language conflicts, connection timing patterns, and HTTP proxy headers.
 
 ### 2️⃣ Stage 1: Anomaly Detection (VPN vs. Non-VPN)
 The extracted features are fed into our **Stage 1 Random Forest Classifier**. 

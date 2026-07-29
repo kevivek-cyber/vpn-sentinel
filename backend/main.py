@@ -80,7 +80,7 @@ def get_ip_info(ip: str):
     try:
         url = f"https://api.ipapi.is/?q={ip}"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=3) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
             if "location" in data:
                 loc = data["location"]
@@ -105,7 +105,7 @@ def get_ip_info(ip: str):
     try:
         url = f"http://ip-api.com/json/{ip}?fields=status,message,country,countryCode,timezone,lat,lon,isp,org,as,query"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req, timeout=3) as response:
+        with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
             if data.get("status") == "success":
                 data["is_vpn"] = False
@@ -130,6 +130,17 @@ def get_ip_info(ip: str):
         "is_tor": False,
         "is_proxy": False
     }
+
+@app.on_event("startup")
+def warm_up_ip_lookup():
+    # Cold DNS resolution + TLS handshake on the first real request can exceed
+    # the lookup timeout, silently falling back to a "clean" IP profile and
+    # misclassifying that first request. Prime the resolver/connection here so
+    # the first user-facing request isn't the one paying that cost.
+    try:
+        get_ip_info("1.1.1.1")
+    except Exception as e:
+        print(f"[startup] IP reputation warm-up failed (non-fatal): {e}")
 class FlowInput(BaseModel):
     duration: float = Field(..., example=12.4)
     fwd_pkt_len_mean: float = Field(..., example=850.0)

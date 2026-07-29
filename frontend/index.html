@@ -3,540 +3,564 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VPN-Sentinel | Enterprise SOC Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>VPN-Sentinel | SOC Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         :root {
-            --bg-color: #03050a;
-            --panel-bg: rgba(10, 15, 30, 0.45);
-            --sidebar-bg: rgba(6, 9, 18, 0.85);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --accent-primary: #9d4edd;
-            --accent-vpn: #ff2a5f;
-            --accent-safe: #00f0ff;
-            --text-main: #ffffff;
-            --text-muted: #a0aec0;
-            --glass-blur: 24px;
+            --bg-color: #0a0b0e;
+            --panel-bg: #141519;
+            --panel-bg-soft: #101114;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.16);
+            --accent-primary: #4f7cff;
+            --accent-primary-soft: rgba(79, 124, 255, 0.12);
+            --accent-vpn: #ef4a5a;
+            --accent-vpn-soft: rgba(239, 74, 90, 0.12);
+            --accent-safe: #2dd4a7;
+            --accent-safe-soft: rgba(45, 212, 167, 0.12);
+            --accent-warn: #f0a83c;
+            --accent-warn-soft: rgba(240, 168, 60, 0.12);
+            --text-main: #eceef1;
+            --text-muted: #8b8e98;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
         }
+
+        html, body { min-height: 100%; }
 
         body {
-            background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(157, 78, 221, 0.12) 0px, transparent 40%),
-                radial-gradient(circle at 85% 30%, rgba(0, 240, 255, 0.12) 0px, transparent 40%),
-                radial-gradient(circle at 50% 80%, rgba(255, 42, 95, 0.08) 0px, transparent 40%);
-            background-attachment: fixed;
-            background-size: 200% 200%;
-            animation: bgShift 15s ease infinite;
+            background: var(--bg-color);
             color: var(--text-main);
-            overflow-x: hidden;
-            display: flex;
-            height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        @keyframes bgShift {
-            0% { background-position: 0% 0%; }
-            50% { background-position: 100% 100%; }
-            100% { background-position: 0% 0%; }
-        }
+        a { color: inherit; text-decoration: none; }
 
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Sidebar Layout */
-        .sidebar {
-            width: 260px;
-            background: var(--sidebar-bg);
-            border-right: 1px solid var(--border-color);
-            backdrop-filter: blur(var(--glass-blur));
-            display: flex;
-            flex-direction: column;
-            padding: 24px;
-            z-index: 100;
-        }
-
-        .logo-container {
+        /* ===== Top Navigation ===== */
+        .topnav {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 40px;
-            cursor: pointer;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 0 28px;
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(10, 11, 14, 0.9);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 200;
         }
 
-        .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-safe));
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
-            border-radius: 10px;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-mark {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            background: var(--accent-primary);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 1.2rem;
-            color: white;
+            font-size: 0.72rem;
+            color: #fff;
+            letter-spacing: -0.02em;
         }
 
-        .logo-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.1;
-            font-size: 1.1rem;
-            font-weight: 800;
-            letter-spacing: 1px;
+        .brand-name {
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-name .sub {
+            color: var(--text-muted);
+            font-weight: 500;
         }
 
         .nav-links {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            gap: 2px;
         }
 
         .nav-links a {
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 1rem;
-            font-weight: 500;
-            padding: 12px 16px;
-            border-radius: 12px;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 7px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+            font-size: 0.86rem;
+            font-weight: 500;
+            transition: background 0.15s ease, color 0.15s ease;
         }
+
+        .nav-links a svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+        .nav-links a:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
 
         .nav-links a.active {
-            background: rgba(157, 78, 221, 0.15);
-            color: white;
-            border-left: 4px solid var(--accent-primary);
+            color: var(--text-main);
+            background: var(--accent-primary-soft);
         }
 
-        .nav-links a:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            transform: translateX(5px);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
+        .nav-toggle {
+            display: none;
+            width: 36px;
+            height: 36px;
             align-items: center;
-            padding: 20px 40px;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(11, 15, 25, 0.2);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 50;
+            justify-content: center;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        /* ===== Page Header ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 28px 28px 0 28px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         .header-title {
-            font-size: 1.4rem;
-            font-weight: 600;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
         }
 
         .status-badge {
-            background: rgba(0, 240, 255, 0.1);
-            color: var(--accent-safe);
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: var(--accent-warn-soft);
+            color: var(--accent-warn);
+            border: 1px solid transparent;
         }
 
         .status-dot {
-            width: 10px;
-            height: 10px;
-            background-color: var(--accent-safe);
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            animation: pulse 1.5s infinite;
-            box-shadow: 0 0 10px var(--accent-safe);
+            background: currentColor;
+            animation: pulse 1.6s infinite;
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.6; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
+        /* ===== Dashboard Grid ===== */
         .dashboard-container {
-            padding: 40px;
-            max-width: 1800px;
+            padding: 20px 28px 40px 28px;
+            max-width: 1400px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-            width: 100%;
+            gap: 16px;
         }
 
-        .glass-panel {
+        .panel {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-top: 1px solid rgba(255,255,255,0.15);
-            border-left: 1px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 24px;
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            border-radius: var(--radius-md);
+            padding: 20px;
         }
 
-        .stat-card {
-            grid-column: span 1;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(157, 78, 221, 0.15);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .stat-card:nth-child(1) { animation-delay: 0.1s; }
-        .stat-card:nth-child(2) { animation-delay: 0.2s; }
-        .stat-card:nth-child(3) { animation-delay: 0.3s; }
-        .stat-card:nth-child(4) { animation-delay: 0.4s; }
-        .map-container { animation-delay: 0.5s; grid-column: span 2; height: 350px; padding: 0; overflow: hidden; display: flex; flex-direction: column;}
-        .chart-container-small { animation-delay: 0.6s; grid-column: span 1; height: 350px;}
-        .simulator-panel { animation-delay: 0.7s; grid-column: span 4; }
-        .log-panel { animation-delay: 0.8s; grid-column: span 4; }
+        .stat-card { grid-column: span 1; }
 
         .stat-header {
             color: var(--text-muted);
-            font-size: 0.95rem;
+            font-size: 0.84rem;
             font-weight: 500;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .stat-value {
-            font-size: 2.8rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-            background: linear-gradient(135deg, #ffffff, #a0aec0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
         }
 
-        .stat-sub {
-            font-size: 0.85rem;
-            color: var(--text-muted);
+        .stat-sub { font-size: 0.8rem; color: var(--text-muted); }
+
+        .map-container {
+            grid-column: span 2;
+            height: 340px;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
+
+        .chart-container-small { grid-column: span 1; height: 340px; }
+        .simulator-panel { grid-column: span 4; }
+        .log-panel { grid-column: span 4; }
 
         .chart-title {
-            font-size: 1.2rem;
+            font-size: 0.98rem;
             font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text-main);
+            margin-bottom: 16px;
         }
 
-        /* Leaflet Map overrides */
-        #threatMap {
-            flex-grow: 1;
-            width: 100%;
-            background: #020617; /* dark water */
-        }
-        .leaflet-container {
-            font-family: 'Outfit', sans-serif;
-            background: transparent !important;
-        }
-        .leaflet-control-attribution {
-            display: none;
+        .map-toolbar {
+            padding: 16px 20px 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Simulator Grid */
-        .simulator-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .sim-btn {
+        .btn-ghost {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
             color: var(--text-main);
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            font-size: 0.8rem;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
         }
 
-        .sim-btn:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        .btn-ghost:hover { background: rgba(255, 255, 255, 0.09); }
+
+        #threatMap { flex-grow: 1; width: 100%; background: #08090b; }
+        .leaflet-container { font-family: 'Inter', sans-serif; background: transparent !important; }
+        .leaflet-control-attribution { display: none; }
+
+        /* Simulator */
+        .simulator-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-top: 18px;
         }
 
-        .sim-btn.safe:hover {
-            background: rgba(0, 240, 255, 0.15);
-            box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
-            border-color: var(--accent-safe);
-        }
-
-        .sim-btn.vpn:hover {
-            background: rgba(255, 42, 95, 0.15);
-            box-shadow: 0 0 20px rgba(255, 42, 95, 0.3);
-            border-color: var(--accent-vpn);
-        }
-
-        .sim-btn.adv {
-            background: linear-gradient(135deg, rgba(255, 42, 95, 0.15), rgba(157, 78, 221, 0.2));
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            grid-column: span 2;
-        }
-        
-        .sim-btn.adv:hover {
-            background: linear-gradient(135deg, rgba(255, 42, 95, 0.3), rgba(157, 78, 221, 0.4));
-            box-shadow: 0 0 25px rgba(157, 78, 221, 0.5);
-            border-color: var(--accent-primary);
-        }
-
-        /* Logs Table */
-        .table-wrapper {
-            overflow-x: auto;
-            margin-top: 16px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th {
-            padding: 16px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+        .sim-btn {
+            background: var(--panel-bg-soft);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.86rem;
             font-weight: 600;
-            border-bottom: 2px solid var(--border-color);
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .sim-btn:hover { border-color: var(--border-strong); background: rgba(255, 255, 255, 0.04); }
+        .sim-btn.safe:hover { border-color: var(--accent-safe); color: var(--accent-safe); }
+        .sim-btn.vpn:hover { border-color: var(--accent-vpn); color: var(--accent-vpn); }
+        .sim-btn.adv {
+            grid-column: span 2;
+            border-color: var(--accent-warn-soft);
+            background: var(--accent-warn-soft);
+            color: var(--accent-warn);
+        }
+        .sim-btn.adv:hover { border-color: var(--accent-warn); }
+
+        /* Logs table */
+        .log-panel-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: var(--panel-bg-soft);
+            color: var(--text-main);
+            outline: none;
+            width: 230px;
+            font-size: 0.85rem;
+        }
+
+        .search-input:focus { border-color: var(--border-strong); }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 720px; }
+
+        th {
+            padding: 10px 14px;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border-bottom: 1px solid var(--border-color);
             text-align: left;
         }
+
         td {
-            padding: 16px;
-            font-size: 0.95rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.03);
+            padding: 14px;
+            font-size: 0.88rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: top;
         }
 
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
         .badge {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.76rem;
             font-weight: 600;
             display: inline-block;
         }
-        .badge.vpn-flag {
-            background: rgba(255, 42, 95, 0.15);
-            color: var(--accent-vpn);
-            border: 1px solid rgba(255, 42, 95, 0.3);
-        }
-        .badge.safe-flag {
-            background: rgba(0, 240, 255, 0.15);
-            color: var(--accent-safe);
-            border: 1px solid rgba(0, 240, 255, 0.3);
-        }
-        .badge.adv-flag {
-            background: rgba(157, 78, 221, 0.2);
-            color: #d8b4fe;
-            border: 1px solid rgba(157, 78, 221, 0.4);
-            box-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
-        }
-        
-        .threat-score-high { color: var(--accent-vpn); font-weight: bold; }
+
+        .badge.vpn-flag { background: var(--accent-vpn-soft); color: var(--accent-vpn); }
+        .badge.safe-flag { background: var(--accent-safe-soft); color: var(--accent-safe); }
+        .badge.adv-flag { background: var(--accent-warn-soft); color: var(--accent-warn); }
+
+        .threat-score-high { color: var(--accent-vpn); font-weight: 600; }
         .threat-score-low { color: var(--accent-safe); }
 
         .explain-box {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             background: rgba(255, 255, 255, 0.03);
             padding: 8px 12px;
-            border-radius: 8px;
-            border-left: 3px solid var(--accent-primary);
-            max-width: 400px;
+            border-radius: var(--radius-sm);
+            border-left: 2px solid var(--accent-primary);
+            max-width: 380px;
             line-height: 1.4;
         }
 
-        /* Toast Notifications */
+        /* Toasts */
         #toast-container {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 24px;
+            right: 24px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             z-index: 9999;
+            max-width: calc(100vw - 32px);
         }
-        
+
         .toast {
-            background: rgba(15, 23, 42, 0.95);
-            border-left: 4px solid var(--accent-vpn);
-            border-radius: 12px;
-            padding: 16px 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px rgba(255, 42, 95, 0.2);
-            backdrop-filter: blur(10px);
+            background: #16171c;
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--accent-vpn);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
+            width: 320px;
+            max-width: 100%;
             transform: translateX(120%);
-            animation: slideInToast 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        
-        .toast.fade-out {
-            animation: slideOutToast 0.5s ease forwards;
+            animation: slideInToast 0.4s ease forwards;
         }
 
-        @keyframes slideInToast {
-            to { transform: translateX(0); }
-        }
-        @keyframes slideOutToast {
-            to { transform: translateX(120%); opacity: 0; }
-        }
-        
-        .toast-title { font-weight: 700; color: white; display: flex; align-items: center; gap: 8px;}
-        .toast-title .icon { color: var(--accent-vpn); }
-        .toast-msg { font-size: 0.9rem; color: var(--text-muted); }
+        .toast.fade-out { animation: slideOutToast 0.4s ease forwards; }
 
+        @keyframes slideInToast { to { transform: translateX(0); } }
+        @keyframes slideOutToast { to { transform: translateX(120%); opacity: 0; } }
+
+        .toast-title { font-weight: 600; font-size: 0.9rem; }
+        .toast-msg { font-size: 0.83rem; color: var(--text-muted); line-height: 1.4; }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 1024px) {
+            .dashboard-container { grid-template-columns: repeat(2, 1fr); }
+            .map-container, .simulator-panel, .log-panel { grid-column: span 2; }
+        }
+
+        @media (max-width: 860px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 12px;
+                right: 12px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 2px;
+                background: #16171c;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                padding: 8px;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 12px; min-height: 44px; }
+            .nav-toggle { display: flex; }
+        }
+
+        @media (max-width: 700px) {
+            .topnav { padding: 0 16px; }
+            .page-header { padding: 18px 16px 0 16px; flex-wrap: wrap; row-gap: 10px; }
+            .dashboard-container { padding: 16px 16px 32px 16px; gap: 12px; }
+            .chart-container-small { grid-column: span 2; height: 280px; }
+            .map-container { height: 240px; }
+            .simulator-grid { grid-template-columns: repeat(2, 1fr); }
+            .sim-btn { padding: 14px 10px; font-size: 0.82rem; }
+            .sim-btn.adv { grid-column: span 2; }
+            .stat-card { padding: 16px; }
+            .stat-value { font-size: 1.5rem; }
+            .stat-header { font-size: 0.78rem; }
+            .search-input { width: 100%; }
+            .explain-box { max-width: 100%; }
+            th, td { padding: 10px; }
+            .nav-toggle { width: 40px; height: 40px; }
+            .btn-ghost { padding: 8px 14px; }
+        }
+
+        @media (max-width: 420px) {
+            .simulator-grid { grid-template-columns: 1fr; }
+            .sim-btn.adv { grid-column: span 1; }
+        }
     </style>
 </head>
 <body>
 
-    <nav class="sidebar">
-        <div class="logo-container">
-            <div class="logo-icon">VS</div>
-            <div class="logo-text">
-                <span>VPN</span>
-                <span style="color: var(--accent-safe)">SENTINEL</span>
-            </div>
-        </div>
-        
-        <div class="nav-links">
-            <a href="/" class="active">📊 SOC Dashboard</a>
-            <a href="/scan">🌐 Browser ML Scan</a>
-            <a href="/ip">🛡️ Threat Intel</a>
-            <a href="/docs">🔌 Integration Guide</a>
-            <a href="/how">📖 How It Works</a>
-            <a href="#">⚙️ AI Settings</a>
-            <a href="#">📄 Reports</a>
-        </div>
-        
-        <div style="margin-top: auto; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid var(--border-color);">
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">System Health</p>
-            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
-                <div style="width: 95%; height: 100%; background: var(--accent-safe);"></div>
-            </div>
-            <p style="font-size: 0.8rem; color: white; margin-top: 8px; text-align: right;">95% Optimal</p>
+    <nav class="topnav">
+        <a href="/" class="brand">
+            <span class="brand-mark">VS</span>
+            <span class="brand-name">VPN<span class="sub"> Sentinel</span></span>
+        </a>
+
+        <button class="nav-toggle" onclick="toggleNav()" aria-label="Toggle menu">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="nav-links" id="navLinks">
+            <a href="/" class="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="/scan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9-6-18-3 9H2"/></svg>
+                Browser Scan
+            </a>
+            <a href="/ip">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5.25 3.5 9.74 8 11 4.5-1.26 8-5.75 8-11V5l-8-3z"/></svg>
+                Threat Intel
+            </a>
+            <a href="/docs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                Integration
+            </a>
+            <a href="/how">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                How It Works
+            </a>
         </div>
     </nav>
 
-    <main class="main-content">
-        <header>
+    <main>
+        <div class="page-header">
             <div class="header-title">Live Traffic Analytics</div>
             <div class="status-badge" id="backend-status">
                 <div class="status-dot"></div>
-                Connecting to Core...
+                Connecting to core...
             </div>
-        </header>
+        </div>
 
         <div class="dashboard-container">
 
-            <div class="glass-panel stat-card">
+            <div class="panel stat-card">
                 <div class="stat-header">Total Handled Connections</div>
                 <div class="stat-value" id="card-total">0</div>
                 <div class="stat-sub">Live monitored flows</div>
             </div>
-            <div class="glass-panel stat-card">
+            <div class="panel stat-card">
                 <div class="stat-header">Active VPN Tunnels</div>
-                <div class="stat-value" id="card-vpn" style="background: linear-gradient(135deg, #ff2a5f, #ff7b93); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+                <div class="stat-value" id="card-vpn" style="color: var(--accent-vpn);">0</div>
                 <div class="stat-sub" id="card-vpn-ratio">0% tunnel ratio</div>
             </div>
-            <div class="glass-panel stat-card">
+            <div class="panel stat-card">
                 <div class="stat-header">Clean Traffic</div>
-                <div class="stat-value" id="card-safe" style="background: linear-gradient(135deg, #00f0ff, #8affff); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+                <div class="stat-value" id="card-safe" style="color: var(--accent-safe);">0</div>
                 <div class="stat-sub">Normal web & VoIP activity</div>
             </div>
-            <div class="glass-panel stat-card">
+            <div class="panel stat-card">
                 <div class="stat-header">Evasion Attempts</div>
-                <div class="stat-value" id="card-adv" style="background: linear-gradient(135deg, #9d4edd, #d8b4fe); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">0</div>
+                <div class="stat-value" id="card-adv" style="color: var(--accent-warn);">0</div>
                 <div class="stat-sub">Adversarial flows blocked</div>
             </div>
 
-            
-            <div class="glass-panel map-container">
-                <div class="chart-title" style="padding: 24px 24px 0 24px; display: flex; justify-content: space-between; align-items: center;">
-                    Global Threat Map
-                    <button onclick="toggleMapFullscreen()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: background 0.2s ease;">⛶ Fullscreen</button>
+            <div class="panel map-container">
+                <div class="map-toolbar">
+                    <div class="chart-title" style="margin: 0;">Global Threat Map</div>
+                    <button class="btn-ghost" onclick="toggleMapFullscreen()">Fullscreen</button>
                 </div>
                 <div id="threatMap"></div>
             </div>
 
-            <div class="glass-panel chart-container-small">
+            <div class="panel chart-container-small">
                 <div class="chart-title">Time Series Volume</div>
-                <div style="position: relative; height: 230px;">
+                <div style="position: relative; height: 250px;">
                     <canvas id="timeSeriesChart"></canvas>
                 </div>
             </div>
-            
-            <div class="glass-panel chart-container-small">
+
+            <div class="panel chart-container-small">
                 <div class="chart-title">Protocol Distribution</div>
-                <div style="position: relative; height: 230px; display: flex; justify-content: center;">
+                <div style="position: relative; height: 250px; display: flex; justify-content: center;">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
 
-
-            <div class="glass-panel simulator-panel">
-                <div class="chart-title" style="margin-bottom: 8px;">Traffic Simulation Console</div>
-                <p style="font-size: 0.9rem; color: var(--text-muted);">Simulate real-time packets to trigger ML classifications and SHAP explanations. Threat locations are randomly generated for the map.</p>
+            <div class="panel simulator-panel">
+                <div class="chart-title" style="margin-bottom: 6px;">Traffic Simulation Console</div>
+                <p style="font-size: 0.86rem; color: var(--text-muted);">Simulate real-time packets to trigger ML classifications and SHAP explanations. Threat locations are randomly generated for the map.</p>
                 <div class="simulator-grid">
                     <button class="sim-btn safe" onclick="simulateTraffic('web')">Simulate Web Traffic</button>
                     <button class="sim-btn safe" onclick="simulateTraffic('voip')">Simulate VoIP Session</button>
                     <button class="sim-btn vpn" onclick="simulateTraffic('wireguard')">Simulate WireGuard</button>
                     <button class="sim-btn vpn" onclick="simulateTraffic('openvpn')">Simulate OpenVPN</button>
-                    <button class="sim-btn adv" onclick="simulateTraffic('adversarial')">⚠️ Launch Adversarial Evasion</button>
+                    <button class="sim-btn adv" onclick="simulateTraffic('adversarial')">Launch Adversarial Evasion</button>
                 </div>
             </div>
 
-            <div class="glass-panel log-panel">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <div class="panel log-panel">
+                <div class="log-panel-head">
                     <div class="chart-title" style="margin: 0;">Real-Time Threat Logs</div>
-                    <div>
-                        <input type="text" placeholder="Search IP or Protocol..." style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.3); color: white; outline: none; width: 250px;">
-                    </div>
+                    <input type="text" class="search-input" placeholder="Search IP or Protocol...">
                 </div>
-                
+
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -566,27 +590,35 @@
     <div id="toast-container"></div>
 
     <script>
+        function toggleNav(force) {
+            const links = document.getElementById('navLinks');
+            const open = typeof force === 'boolean' ? force : !links.classList.contains('open');
+            links.classList.toggle('open', open);
+        }
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => toggleNav(false));
+        });
+
         const BACKEND_URL = (window.location.protocol === 'file:' || window.location.origin === 'null')
             ? 'http://127.0.0.1:8000'
             : window.location.origin;
         const API_URL = `${BACKEND_URL}/api`;
-        
+
         // Multi-Tenant Architecture & Dynamic Theming
         const urlParams = new URLSearchParams(window.location.search);
         const tenantId = urlParams.get('tenant') || 'default';
         const primaryColor = urlParams.get('primary');
         if (primaryColor) {
             document.documentElement.style.setProperty('--accent-primary', '#' + primaryColor);
-            document.documentElement.style.setProperty('--accent-safe', '#' + primaryColor);
         }
-        
+
         // Show Tenant ID in UI if present
         window.addEventListener('DOMContentLoaded', () => {
             if (tenantId !== 'default') {
-                document.querySelector('.header-title').innerHTML += ` <span style="font-size:0.8rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px; margin-left:12px;">Tenant: ${tenantId}</span>`;
+                document.querySelector('.header-title').innerHTML += ` <span style="font-size:0.78rem; color:var(--text-muted); background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:6px; margin-left:12px; font-weight:500;">Tenant: ${tenantId}</span>`;
             }
         });
-        
+
         let timeSeriesChart = null;
         let pieChart = null;
         let threatMap = null;
@@ -594,7 +626,6 @@
 
         // Initialize Map
         function initMap() {
-            // Dark map tiles (CartoDB Dark Matter)
             threatMap = L.map('threatMap', {zoomControl: false, attributionControl: false}).setView([20, 0], 2);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
                 subdomains: 'abcd',
@@ -605,13 +636,13 @@
         // Add Marker to Map
         function addMapMarker(isVpn, isAdv) {
             if(!threatMap) return;
-            const lat = (Math.random() - 0.5) * 140; 
+            const lat = (Math.random() - 0.5) * 140;
             const lng = (Math.random() - 0.5) * 300;
-            
-            let color = '#00f0ff'; // safe
-            if (isAdv) color = '#9d4edd'; // adv
-            else if (isVpn) color = '#ff2a5f'; // vpn
-            
+
+            let color = '#2dd4a7'; // safe
+            if (isAdv) color = '#f0a83c'; // adv
+            else if (isVpn) color = '#ef4a5a'; // vpn
+
             const circle = L.circleMarker([lat, lng], {
                 radius: isAdv ? 8 : (isVpn ? 6 : 4),
                 fillColor: color,
@@ -620,8 +651,7 @@
                 opacity: 0.8,
                 fillOpacity: 0.6
             }).addTo(threatMap);
-            
-            // Auto remove after 10 seconds to not clutter
+
             setTimeout(() => {
                 threatMap.removeLayer(circle);
             }, 10000);
@@ -632,11 +662,11 @@
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.innerHTML = `
-                <div class="toast-title"><span class="icon">⚠️</span> ${title}</div>
+                <div class="toast-title">${title}</div>
                 <div class="toast-msg">${msg}</div>
             `;
             container.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.classList.add('fade-out');
                 setTimeout(() => toast.remove(), 500);
@@ -650,17 +680,17 @@
                 data: {
                     labels: [],
                     datasets: [
-                        { label: 'Clean', data: [], borderColor: '#00f0ff', tension: 0.3, fill: false },
-                        { label: 'VPN', data: [], borderColor: '#ff2a5f', tension: 0.3, fill: false }
+                        { label: 'Clean', data: [], borderColor: '#2dd4a7', tension: 0.3, fill: false },
+                        { label: 'VPN', data: [], borderColor: '#ef4a5a', tension: 0.3, fill: false }
                     ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: '#f3f4f6' } } },
+                    plugins: { legend: { labels: { color: '#eceef1' } } },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0aec0'} },
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0aec0'} }
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b8e98'} },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b8e98'} }
                     }
                 }
             });
@@ -672,7 +702,7 @@
                     labels: ['OpenVPN', 'WireGuard', 'IKEv2'],
                     datasets: [{
                         data: [0, 0, 0],
-                        backgroundColor: ['#ff2a5f', '#00f0ff', '#9d4edd'],
+                        backgroundColor: ['#ef4a5a', '#4f7cff', '#f0a83c'],
                         borderWidth: 0
                     }]
                 },
@@ -680,7 +710,7 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { color: '#f3f4f6' } }
+                        legend: { position: 'bottom', labels: { color: '#eceef1' } }
                     },
                     cutout: '75%'
                 }
@@ -693,9 +723,8 @@
                 if (res.ok) {
                     const badge = document.getElementById('backend-status');
                     badge.innerHTML = '<div class="status-dot"></div> Live Monitoring Active';
-                    badge.style.color = 'var(--accent-safe)';
-                    badge.style.borderColor = 'rgba(0, 240, 255, 0.3)';
-                    badge.style.background = 'rgba(0, 240, 255, 0.1)';
+                    badge.style.color = '#2dd4a7';
+                    badge.style.background = 'rgba(45, 212, 167, 0.12)';
                     return true;
                 }
             } catch (err) {}
@@ -705,11 +734,11 @@
         function generateRandomIP() {
             return `${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*255)}`;
         }
-        
+
         function generateThreatScore(isVpn, isAdv) {
-            if (isAdv) return Math.floor(Math.random() * 15) + 85; // 85-99
-            if (isVpn) return Math.floor(Math.random() * 30) + 50; // 50-80
-            return Math.floor(Math.random() * 20) + 1; // 1-20
+            if (isAdv) return Math.floor(Math.random() * 15) + 85;
+            if (isVpn) return Math.floor(Math.random() * 30) + 50;
+            return Math.floor(Math.random() * 20) + 1;
         }
 
         async function fetchStats() {
@@ -722,7 +751,7 @@
             document.getElementById('card-vpn').innerText = stats.vpn_count;
             document.getElementById('card-safe').innerText = stats.non_vpn_count;
             document.getElementById('card-vpn-ratio').innerText = `${Math.round(stats.vpn_ratio * 100)}% tunnel ratio`;
-            document.getElementById('card-adv').innerText = advCount; // Client side tracker for demo
+            document.getElementById('card-adv').innerText = advCount;
 
             pieChart.data.datasets[0].data = [
                 stats.protocols.OpenVPN || 0,
@@ -748,30 +777,29 @@
 
             tbody.innerHTML = history.map(log => {
                 const dateStr = new Date(log.timestamp).toLocaleTimeString();
-                
-                // Determine if it was adversarial (High fwd_pkt_len_mean for demo purposes)
+
                 const isAdv = log.fwd_pkt_len_mean > 1000;
-                
+
                 let predBadge = `<span class="badge safe-flag">Clean</span>`;
                 if (isAdv) predBadge = `<span class="badge adv-flag">Adversarial Attempt</span>`;
                 else if (log.is_vpn) predBadge = `<span class="badge vpn-flag">VPN: ${log.vpn_protocol}</span>`;
-                
+
                 const threatScore = generateThreatScore(log.is_vpn, isAdv);
                 const scoreColor = threatScore > 75 ? 'threat-score-high' : 'threat-score-low';
 
                 return `
                     <tr>
                         <td style="font-weight: 500;">${dateStr}</td>
-                        <td style="font-family: monospace;">
+                        <td style="font-family: var(--font-mono); font-size: 0.82rem;">
                             ${generateRandomIP()}<br>
                             <span class="${scoreColor}">Threat Score: ${threatScore}/100</span>
                         </td>
-                        <td style="color: var(--text-muted); font-size: 0.8rem; font-family: monospace;">
+                        <td style="color: var(--text-muted); font-size: 0.78rem; font-family: var(--font-mono);">
                             Dur: ${log.duration.toFixed(2)}s<br>
                             Len: ${log.fwd_pkt_len_mean.toFixed(0)} Fwd / ${log.bwd_pkt_len_mean.toFixed(0)} Bwd
                         </td>
                         <td>${predBadge}</td>
-                        <td style="font-weight: 700; color: white;">${(log.confidence * 100).toFixed(1)}%</td>
+                        <td style="font-weight: 700;">${(log.confidence * 100).toFixed(1)}%</td>
                         <td>
                             <div class="explain-box">${log.explanation}</div>
                         </td>
@@ -799,7 +827,6 @@
                 flowData = { duration: 15, fwd_pkt_len_mean: 1200, bwd_pkt_len_mean: 1300, flow_iat_mean: 0.35, flow_iat_std: 0.2, packets_per_sec: 80 };
             }
 
-            // Map Animation
             addMapMarker(type !== 'web' && type !== 'voip', isAdv);
 
             try {
@@ -812,45 +839,43 @@
             } catch (err) {}
         }
 
-
         function toggleMapFullscreen() {
             const mapContainer = document.querySelector('.map-container');
             if (!document.fullscreenElement) {
                 if (mapContainer.requestFullscreen) {
                     mapContainer.requestFullscreen();
-                } else if (mapContainer.webkitRequestFullscreen) { /* Safari */
+                } else if (mapContainer.webkitRequestFullscreen) {
                     mapContainer.webkitRequestFullscreen();
-                } else if (mapContainer.msRequestFullscreen) { /* IE11 */
+                } else if (mapContainer.msRequestFullscreen) {
                     mapContainer.msRequestFullscreen();
                 }
             } else {
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { /* Safari */
+                } else if (document.webkitExitFullscreen) {
                     document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { /* IE11 */
+                } else if (document.msExitFullscreen) {
                     document.msExitFullscreen();
                 }
             }
         }
 
-        // Ensure Leaflet resizes correctly when entering/exiting fullscreen
         document.addEventListener('fullscreenchange', () => {
             if (threatMap) {
                 setTimeout(() => {
                     threatMap.invalidateSize();
                 }, 100);
             }
-            
+
             const mapContainer = document.querySelector('.map-container');
             if (document.fullscreenElement) {
-                mapContainer.style.background = '#020617'; // Set dark background in fullscreen
+                mapContainer.style.background = '#08090b';
                 mapContainer.style.padding = '20px';
                 mapContainer.style.borderRadius = '0';
             } else {
                 mapContainer.style.background = 'var(--panel-bg)';
-                mapContainer.style.padding = '24px';
-                mapContainer.style.borderRadius = '20px';
+                mapContainer.style.padding = '0';
+                mapContainer.style.borderRadius = 'var(--radius-md)';
             }
         });
 

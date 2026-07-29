@@ -53,8 +53,11 @@ features = [
     'fwd_pkt_len_std', 'bwd_pkt_len_std', 'flow_iat_max', 'flow_iat_min'
 ]
 print("\n--- Training Robust Stage 1: VPN vs Non-VPN (250 estimators) ---")
-X_train_s1 = train_df[features]
-y_train_s1 = train_df['is_vpn']
+vpn_train_df_s1 = train_df[train_df['is_vpn'] == 1].copy()
+adv_vpn_train_df_s1 = apply_evasion(vpn_train_df_s1)
+train_df_robust_s1 = pd.concat([train_df, adv_vpn_train_df_s1], ignore_index=True)
+X_train_s1 = train_df_robust_s1[features]
+y_train_s1 = train_df_robust_s1['is_vpn']
 X_test_s1 = test_df[features]
 y_test_s1 = test_df['is_vpn']
 clf_s1 = RandomForestClassifier(n_estimators=250, random_state=42, n_jobs=-1)
@@ -135,8 +138,18 @@ y_pred_br2 = clf_browser_s2.predict(X_test_br2)
 acc_br2 = accuracy_score(y_test_br2, y_pred_br2)
 print(f"Browser Stage 2 Model Accuracy (Multi-Signal): {acc_br2:.4f}")
 print("\n--- Evaluating Adversarial Robustness ---")
-X_test_adv_s1 = test_adv_df[features]
-y_test_adv_s1 = test_adv_df['is_vpn']
+# Stage 1 trains on a real packet-capture dataset (vpn-non_vpn new data.csv) whose
+# feature scale differs drastically from data/test_flows_adversarial.csv (a separate
+# synthetic dataset generated for Stage 2). Evaluating Stage 1 against that file
+# measures a distribution mismatch, not evasion resistance. Build a matched
+# adversarial set instead, by perturbing Stage 1's own held-out VPN rows.
+vpn_test_df_s1 = test_df[test_df['is_vpn'] == 1].copy()
+test_df_adv_s1 = pd.concat(
+    [test_df[test_df['is_vpn'] == 0], apply_evasion(vpn_test_df_s1)],
+    ignore_index=True
+)
+X_test_adv_s1 = test_df_adv_s1[features]
+y_test_adv_s1 = test_df_adv_s1['is_vpn']
 y_pred_adv_s1 = clf_s1.predict(X_test_adv_s1)
 acc_s1_clean = accuracy_score(y_test_s1, y_pred_s1)
 acc_s1_adv = accuracy_score(y_test_adv_s1, y_pred_adv_s1)

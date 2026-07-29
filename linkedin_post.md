@@ -10,6 +10,10 @@ Before posting, make sure to upload the **three generated dark-mode images** loc
 2. `flow_importance.png` (Top 10 raw packet timing features)
 3. `browser_importance.png` (14 browser telemetry signals)
 
+![Performance Summary](file:///c:/Users/Vivek/Desktop/vpn%20sentinel/performance_summary.png)
+![Flow Importance](file:///c:/Users/Vivek/Desktop/vpn%20sentinel/flow_importance.png)
+![Browser Importance](file:///c:/Users/Vivek/Desktop/vpn%20sentinel/browser_importance.png)
+
 ---
 
 ## 📝 LinkedIn Post Copy (Copy and Paste)

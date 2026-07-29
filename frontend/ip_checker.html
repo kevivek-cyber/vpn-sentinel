@@ -4,32 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VPN-Sentinel | Instant IP Intelligence Lookup</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #080b11;
-            --panel-bg: rgba(15, 23, 42, 0.6);
+            --bg-color: #0a0b0e;
+            --panel-bg: #141519;
+            --panel-bg-soft: #101114;
             --border-color: rgba(255, 255, 255, 0.08);
-            --accent-primary: #3b82f6;
-            --accent-vpn: #ef4444;
-            --accent-safe: #10b981;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --glass-blur: 20px;
+            --border-strong: rgba(255, 255, 255, 0.16);
+            --accent-primary: #4f7cff;
+            --accent-primary-soft: rgba(79, 124, 255, 0.12);
+            --accent-vpn: #ef4a5a;
+            --accent-safe: #2dd4a7;
+            --text-main: #eceef1;
+            --text-muted: #8b8e98;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --glass-blur: 10px;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
 
         body {
             background-color: var(--bg-color);
             background-image:
-                radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.12) 0px, transparent 40%),
-                radial-gradient(at 100% 0%, rgba(239, 68, 68, 0.08) 0px, transparent 40%);
+                radial-gradient(at 0% 100%, rgba(79, 124, 255, 0.08) 0px, transparent 40%),
+                radial-gradient(at 100% 0%, rgba(239, 74, 90, 0.05) 0px, transparent 40%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -41,73 +47,93 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 40px;
+            padding: 0 28px;
+            height: 60px;
             border-bottom: 1px solid var(--border-color);
             backdrop-filter: blur(var(--glass-blur));
-            background: rgba(8, 11, 17, 0.5);
+            background: rgba(10, 11, 14, 0.9);
         }
 
         .logo-container {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             text-decoration: none;
         }
 
         .logo-icon {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-vpn));
-            border-radius: 8px;
+            width: 26px;
+            height: 26px;
+            background: var(--accent-primary);
+            border-radius: 7px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
+            font-weight: 800;
+            font-size: 0.72rem;
             color: white;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            letter-spacing: -0.02em;
         }
 
         .logo-text {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
+            gap: 3px;
             line-height: 1.1;
-            font-size: 0.95rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            color: white;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text-main);
         }
 
         .logo-subtext {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--text-muted);
             border-left: 1px solid var(--border-color);
             padding-left: 12px;
-            margin-left: 12px;
+            margin-left: 4px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2px;
         }
 
         .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 7px;
             color: var(--text-muted);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.86rem;
             font-weight: 500;
-            margin-left: 20px;
-            transition: color 0.2s ease;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            transition: background 0.15s ease, color 0.15s ease;
         }
 
+        .nav-links a svg { width: 15px; height: 15px; flex-shrink: 0; }
+
         .nav-links a:hover {
-            color: #ffffff;
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-links a.active {
+            color: var(--text-main);
+            background: var(--accent-primary-soft);
         }
 
         .mobile-menu-toggle {
             display: none;
-            background: transparent;
+            background: var(--panel-bg);
             border: none;
             color: var(--text-main);
             cursor: pointer;
-            padding: 8px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
             border: 1px solid var(--border-color);
             align-items: center;
             justify-content: center;
@@ -119,11 +145,8 @@
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        @media (max-width: 768px) {
-            header {
-                padding: 16px 20px;
-                position: relative;
-            }
+        @media (max-width: 860px) {
+            header { padding: 0 16px; }
 
             .mobile-menu-toggle {
                 display: flex;
@@ -132,18 +155,19 @@
             .nav-links {
                 display: none;
                 flex-direction: column;
+                align-items: stretch;
                 position: absolute;
-                top: 80px;
-                right: 20px;
-                background: rgba(15, 23, 42, 0.95);
+                top: 60px;
+                right: 12px;
+                left: 12px;
+                background: #16171c;
                 border: 1px solid var(--border-color);
-                border-radius: 16px;
-                padding: 16px;
-                gap: 10px;
+                border-radius: var(--radius-md);
+                padding: 8px;
+                gap: 2px;
                 z-index: 1000;
-                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-                backdrop-filter: blur(var(--glass-blur));
-                width: 200px;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
+                width: auto;
                 margin-left: 0;
             }
 
@@ -152,16 +176,13 @@
             }
 
             .nav-links a {
-                margin: 0;
-                padding: 10px 14px;
-                width: 100%;
-                text-align: left;
-                border-radius: 8px;
-                transition: background 0.2s ease;
+                padding: 12px;
+                min-height: 44px;
             }
 
-            .nav-links a:hover {
-                background: rgba(255, 255, 255, 0.05);
+            .mobile-menu-toggle {
+                width: 40px;
+                height: 40px;
             }
 
             .details-grid {
@@ -222,8 +243,8 @@
         }
 
         .search-box-wrapper:focus-within {
-            border-color: rgba(59, 130, 246, 0.4);
-            box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
+            border-color: rgba(79, 124, 255, 0.4);
+            box-shadow: 0 10px 30px -10px rgba(79, 124, 255, 0.15);
         }
 
         .search-input {
@@ -251,11 +272,10 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-primary), #2563eb);
+            background: var(--accent-primary);
             color: #ffffff;
             padding: 14px 32px;
             border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
         }
 
         .btn-primary:hover {
@@ -319,17 +339,15 @@
         }
 
         .verdict-badge.vpn {
-            background: rgba(239, 68, 68, 0.12);
+            background: rgba(239, 74, 90, 0.12);
             color: var(--accent-vpn);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 74, 90, 0.3);
         }
 
         .verdict-badge.clean {
-            background: rgba(16, 185, 129, 0.12);
+            background: rgba(45, 212, 167, 0.12);
             color: var(--accent-safe);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(45, 212, 167, 0.3);
         }
 
         .details-grid {
@@ -415,29 +433,82 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        @media (max-width: 700px) {
+            .main-container { padding: 32px 16px; }
+            .title { font-size: 1.9rem; }
+            .subtitle { font-size: 0.92rem; margin-bottom: 24px; }
+            .search-box-wrapper {
+                flex-direction: column;
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                gap: 10px;
+            }
+            .search-input {
+                background: var(--panel-bg);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-md);
+                padding: 14px 18px;
+                width: 100%;
+            }
+            .btn-primary { width: 100%; padding: 14px; }
+            .btn-secondary { width: 100%; }
+            .result-panel { padding: 22px; border-radius: var(--radius-md); }
+            .result-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                padding-bottom: 18px;
+                margin-bottom: 22px;
+            }
+            .ip-display { font-size: 1.5rem; word-break: break-all; }
+            .details-grid { gap: 16px; }
+            .gauge-wrapper { flex-wrap: wrap; }
+            footer { padding: 20px 16px; }
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <a class="logo-container" href="#">
+        <a class="logo-container" href="/">
             <div class="logo-icon">VS</div>
             <div class="logo-text">
-                <span>VPN-</span>
-                <span>SENTINEL</span>
+                <span>VPN</span>
+                <span style="color: var(--text-muted); font-weight: 500;">Sentinel</span>
             </div>
             <div class="logo-subtext">Threat Intel</div>
         </a>
         <button class="mobile-menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                 <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
         </button>
         <div class="nav-links" id="nav-links">
-            <a href="/">← Admin Dashboard</a>
-            <a href="/scan">Live ML Analyzer →</a>
+            <a href="/">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                Dashboard
+            </a>
+            <a href="/scan">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9-6-18-3 9H2"/></svg>
+                Browser Scan
+            </a>
+            <a href="/ip" class="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5.25 3.5 9.74 8 11 4.5-1.26 8-5.75 8-11V5l-8-3z"/></svg>
+                Threat Intel
+            </a>
+            <a href="/docs">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                Integration
+            </a>
+            <a href="/how">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                How It Works
+            </a>
         </div>
     </header>
 
