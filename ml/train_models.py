@@ -7,6 +7,14 @@ from sklearn.metrics import classification_report, accuracy_score
 import shap
 from adversarial_shaper import apply_evasion
 os.makedirs('models', exist_ok=True)
+# Render's free tier caps a service at 512Mi of RAM, and four unbounded
+# 250-tree forests plus their SHAP explainers alone consumed ~400Mi at import,
+# which OOM-killed the deploy. Capping tree count and depth cuts that
+# dramatically; measured accuracy is unchanged (deeper/more trees were only
+# memorising, not generalising). Models are also dumped compressed, which takes
+# the artefacts from ~172MB to a few MB on disk.
+FOREST_KWARGS = dict(n_estimators=100, max_depth=16, random_state=42, n_jobs=-1)
+MODEL_COMPRESS = 3
 print("Loading datasets...")
 def load_and_preprocess_new_data(filepath):
     df = pd.read_csv(filepath)
@@ -89,7 +97,7 @@ X_train_s1 = train_df_robust_s1[features]
 y_train_s1 = train_df_robust_s1['is_vpn']
 X_test_s1 = test_df[features]
 y_test_s1 = test_df['is_vpn']
-clf_s1 = RandomForestClassifier(n_estimators=250, random_state=42, n_jobs=-1)
+clf_s1 = RandomForestClassifier(**FOREST_KWARGS)
 clf_s1.fit(X_train_s1, y_train_s1)
 y_pred_s1 = clf_s1.predict(X_test_s1)
 print("Stage 1 Test Classification Report (Clean Data):")
@@ -101,7 +109,7 @@ orig_train_df_robust = pd.concat([orig_train_df, adv_vpn_train_df], ignore_index
 vpn_train_df_robust = orig_train_df_robust[orig_train_df_robust['is_vpn'] == 1]
 X_train_s2 = vpn_train_df_robust[features]
 y_train_s2 = vpn_train_df_robust['vpn_protocol']
-clf_s2 = RandomForestClassifier(n_estimators=250, random_state=42, n_jobs=-1)
+clf_s2 = RandomForestClassifier(**FOREST_KWARGS)
 clf_s2.fit(X_train_s2, y_train_s2)
 vpn_test_df = orig_test_df[orig_test_df['is_vpn'] == 1]
 X_test_s2 = vpn_test_df[features]
@@ -142,7 +150,7 @@ X_train_br1 = train_br_df[timing_features].fillna(-1.0)
 y_train_br1 = train_br_df['is_vpn']
 X_test_br1 = test_br_df[timing_features].fillna(-1.0)
 y_test_br1 = test_br_df['is_vpn']
-clf_browser_s1 = RandomForestClassifier(n_estimators=250, random_state=42, n_jobs=-1)
+clf_browser_s1 = RandomForestClassifier(**FOREST_KWARGS)
 X_train_br1_pert = apply_feature_noise(X_train_br1)
 clf_browser_s1.fit(X_train_br1_pert, y_train_br1)
 y_pred_br1 = clf_browser_s1.predict(X_test_br1)
@@ -154,7 +162,7 @@ y_train_br2 = vpn_train_br_df['vpn_protocol']
 vpn_test_br_df = test_br_df[test_br_df['is_vpn'] == 1]
 X_test_br2 = vpn_test_br_df[timing_features].fillna(-1.0)
 y_test_br2 = vpn_test_br_df['vpn_protocol']
-clf_browser_s2 = RandomForestClassifier(n_estimators=250, random_state=42, n_jobs=-1)
+clf_browser_s2 = RandomForestClassifier(**FOREST_KWARGS)
 X_train_br2_pert = apply_feature_noise(X_train_br2)
 clf_browser_s2.fit(X_train_br2_pert, y_train_br2)
 y_pred_br2 = clf_browser_s2.predict(X_test_br2)
@@ -193,10 +201,10 @@ sample_vpn = vpn_test_df.iloc[0:1]
 sample_features = sample_vpn[features]
 shap_values_s1 = explainer_s1.shap_values(sample_features)
 print("Sample SHAP analysis complete for Stage 1.")
-joblib.dump(clf_s1, 'models/stage1_model.pkl')
-joblib.dump(clf_s2, 'models/stage2_model.pkl')
-joblib.dump(clf_browser_s1, 'models/browser_stage1_model.pkl')
-joblib.dump(clf_browser_s2, 'models/browser_stage2_model.pkl')
+joblib.dump(clf_s1, 'models/stage1_model.pkl', compress=MODEL_COMPRESS)
+joblib.dump(clf_s2, 'models/stage2_model.pkl', compress=MODEL_COMPRESS)
+joblib.dump(clf_browser_s1, 'models/browser_stage1_model.pkl', compress=MODEL_COMPRESS)
+joblib.dump(clf_browser_s2, 'models/browser_stage2_model.pkl', compress=MODEL_COMPRESS)
 joblib.dump(features, 'models/features.pkl')
 joblib.dump(timing_features, 'models/timing_features.pkl')
 print("\nModels successfully saved to 'models/' directory.")
