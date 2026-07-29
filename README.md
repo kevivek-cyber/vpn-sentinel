@@ -34,7 +34,7 @@ The interesting part isn't the feature list — it's the bugs that surfaced from
 VPN Sentinel relies on a highly robust **Multi-Stage Inference Pipeline**. Depending on the data source, traffic is routed through either our **Flow Model** (for raw network packets) or our **Browser Model** (for web application traffic).
 
 ### 1️⃣ Traffic Interception & Feature Extraction
-The system captures traffic using a live packet sniffer (`ml/live_monitor.py`) or receives browser-level telemetry via our REST API. It extracts complex features while disregarding payloads (protecting user privacy):
+The system captures traffic using a live packet sniffer (`project/ml/live_monitor.py`) or receives browser-level telemetry via our REST API. It extracts complex features while disregarding payloads (protecting user privacy):
 - **Flow Statistics:** Packet Inter-Arrival Time (IAT) mean, variance, jitter ratios, and packet length distributions.
 - **Browser Context:** WebRTC IP leaks, timezone/language conflicts, connection timing patterns, WebGL GPU fingerprint, and HTTP proxy headers.
 
@@ -60,7 +60,7 @@ VPN Sentinel doesn't just block traffic—it explains *why*.
 ```mermaid
 graph TD
     %% Core Inputs
-    Client([Client Traffic]) --> Sniffer[ml/live_monitor.py / Browser]
+    Client([Client Traffic]) --> Sniffer[live_monitor.py / Browser]
     Sniffer --> |16 Flow Features| API[FastAPI Ingestion]
     Sniffer --> |17 Context Features| API
     
@@ -127,28 +127,34 @@ Our models are trained on highly specific dimensions to prevent overfitting and 
 
 ```
 .
-├── VPN_Sentinel_Main.ipynb    # 📓 Full analysis walkthrough — start here
-├── backend/                   # FastAPI inference API
-│   ├── main.py                #   routes, feature extraction, model serving
-│   └── database.py            #   SQLAlchemy models + migrations
-├── frontend/                  # Dashboard, browser scan, threat intel, docs pages
-├── ml/                        # Training pipeline
-│   ├── train_models.py        #   trains + exports all four models
-│   ├── data_generator.py      #   synthetic flow/browser dataset generation
-│   ├── adversarial_shaper.py  #   traffic-shaping evasion simulation
-│   └── live_monitor.py        #   live packet sniffer
-├── models/                    # Trained .pkl artifacts + feature lists
-├── notebooks/                 # Supporting/earlier analysis notebooks
-├── widget/                    # Embeddable third-party widget
-├── Dockerfile
-└── requirements.txt
+├── README.md
+├── VPN_Sentinel_Main.ipynb        # 📓 Full analysis walkthrough — start here
+└── project/                       # The application itself
+    ├── backend/                   #   FastAPI inference API
+    │   ├── main.py                #     routes, feature extraction, model serving
+    │   └── database.py            #     SQLAlchemy models + migrations
+    ├── frontend/                  #   Dashboard, browser scan, threat intel, docs
+    ├── ml/                        #   Training pipeline
+    │   ├── train_models.py        #     trains + exports all four models
+    │   ├── data_generator.py      #     synthetic dataset generation
+    │   ├── adversarial_shaper.py  #     traffic-shaping evasion simulation
+    │   └── live_monitor.py        #     live packet sniffer
+    ├── models/                    #   Trained .pkl artifacts + feature lists
+    ├── notebooks/                 #   Supporting/earlier analysis notebooks
+    ├── widget/                    #   Embeddable third-party widget
+    ├── Dockerfile
+    └── requirements.txt
 ```
 
 ---
 
 ## 🛠️ Getting Started
 
-All commands are run from the **project root**.
+Run these from inside the **`project/`** directory:
+
+```bash
+cd project
+```
 
 1. **Install dependencies:**
    ```bash
@@ -168,3 +174,13 @@ Optionally, to capture live network traffic (requires Admin/root):
 ```bash
 python ml/live_monitor.py
 ```
+
+The walkthrough notebook lives at the repo root and resolves paths into
+`project/` automatically, so run Jupyter from the root:
+```bash
+jupyter notebook VPN_Sentinel_Main.ipynb
+```
+
+> **Deploying:** the app is not at the repository root, so set your platform's
+> root/base directory to `project` (on Render: *Settings → Build & Deploy →
+> Root Directory*). The start command itself stays `uvicorn backend.main:app`.
