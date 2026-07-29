@@ -34,7 +34,7 @@ The interesting part isn't the feature list — it's the bugs that surfaced from
 VPN Sentinel relies on a highly robust **Multi-Stage Inference Pipeline**. Depending on the data source, traffic is routed through either our **Flow Model** (for raw network packets) or our **Browser Model** (for web application traffic).
 
 ### 1️⃣ Traffic Interception & Feature Extraction
-The system captures traffic using a live packet sniffer (`live_monitor.py`) or receives browser-level telemetry via our REST API. It extracts complex features while disregarding payloads (protecting user privacy):
+The system captures traffic using a live packet sniffer (`ml/live_monitor.py`) or receives browser-level telemetry via our REST API. It extracts complex features while disregarding payloads (protecting user privacy):
 - **Flow Statistics:** Packet Inter-Arrival Time (IAT) mean, variance, jitter ratios, and packet length distributions.
 - **Browser Context:** WebRTC IP leaks, timezone/language conflicts, connection timing patterns, WebGL GPU fingerprint, and HTTP proxy headers.
 
@@ -60,7 +60,7 @@ VPN Sentinel doesn't just block traffic—it explains *why*.
 ```mermaid
 graph TD
     %% Core Inputs
-    Client([Client Traffic]) --> Sniffer[live_monitor.py / Browser]
+    Client([Client Traffic]) --> Sniffer[ml/live_monitor.py / Browser]
     Sniffer --> |16 Flow Features| API[FastAPI Ingestion]
     Sniffer --> |17 Context Features| API
     
@@ -123,18 +123,48 @@ Our models are trained on highly specific dimensions to prevent overfitting and 
 
 ---
 
+## 📁 Project Structure
+
+```
+.
+├── VPN_Sentinel_Main.ipynb    # 📓 Full analysis walkthrough — start here
+├── backend/                   # FastAPI inference API
+│   ├── main.py                #   routes, feature extraction, model serving
+│   └── database.py            #   SQLAlchemy models + migrations
+├── frontend/                  # Dashboard, browser scan, threat intel, docs pages
+├── ml/                        # Training pipeline
+│   ├── train_models.py        #   trains + exports all four models
+│   ├── data_generator.py      #   synthetic flow/browser dataset generation
+│   ├── adversarial_shaper.py  #   traffic-shaping evasion simulation
+│   └── live_monitor.py        #   live packet sniffer
+├── models/                    # Trained .pkl artifacts + feature lists
+├── notebooks/                 # Supporting/earlier analysis notebooks
+├── widget/                    # Embeddable third-party widget
+├── Dockerfile
+└── requirements.txt
+```
+
+---
+
 ## 🛠️ Getting Started
 
-1. **Train the Models:**
+All commands are run from the **project root**.
+
+1. **Install dependencies:**
    ```bash
-   python train_models.py
+   pip install -r requirements.txt
    ```
-2. **Start the API Server:**
+2. **Train the models:**
+   ```bash
+   python ml/train_models.py
+   ```
+3. **Start the API server:**
    ```bash
    uvicorn backend.main:app --reload
    ```
-3. **Launch the Live Monitor (Run as Admin/Root):**
-   ```bash
-   python live_monitor.py
-   ```
-4. **Access the Dashboard:** Navigate to `http://localhost:8000/` in your browser.
+4. **Access the dashboard:** open `http://localhost:8000/` in your browser.
+
+Optionally, to capture live network traffic (requires Admin/root):
+```bash
+python ml/live_monitor.py
+```
