@@ -286,7 +286,6 @@
         .sim-btn.safe:hover { border-color: var(--accent-safe); color: var(--accent-safe); }
         .sim-btn.vpn:hover { border-color: var(--accent-vpn); color: var(--accent-vpn); }
         .sim-btn.adv {
-            grid-column: span 2;
             border-color: var(--accent-warn-soft);
             background: var(--accent-warn-soft);
             color: var(--accent-warn);
@@ -350,6 +349,7 @@
         .badge.vpn-flag { background: var(--accent-vpn-soft); color: var(--accent-vpn); }
         .badge.safe-flag { background: var(--accent-safe-soft); color: var(--accent-safe); }
         .badge.adv-flag { background: var(--accent-warn-soft); color: var(--accent-warn); }
+        .badge.tle-flag { background: rgba(239, 74, 90, 0.18); color: var(--accent-vpn); border: 1px solid var(--accent-vpn); }
 
         .threat-score-high { color: var(--accent-vpn); font-weight: 600; }
         .threat-score-low { color: var(--accent-safe); }
@@ -551,6 +551,7 @@
                     <button class="sim-btn safe" onclick="simulateTraffic('voip')">Simulate VoIP Session</button>
                     <button class="sim-btn vpn" onclick="simulateTraffic('wireguard')">Simulate WireGuard</button>
                     <button class="sim-btn vpn" onclick="simulateTraffic('openvpn')">Simulate OpenVPN</button>
+                    <button class="sim-btn vpn" onclick="simulateTraffic('longvpn')">Simulate Long VPN Session (TLE)</button>
                     <button class="sim-btn adv" onclick="simulateTraffic('adversarial')">Launch Adversarial Evasion</button>
                 </div>
             </div>
@@ -783,6 +784,7 @@
                 let predBadge = `<span class="badge safe-flag">Clean</span>`;
                 if (isAdv) predBadge = `<span class="badge adv-flag">Adversarial Attempt</span>`;
                 else if (log.is_vpn) predBadge = `<span class="badge vpn-flag">VPN: ${log.vpn_protocol}</span>`;
+                if (log.is_tle) predBadge += ` <span class="badge tle-flag">TLE</span>`;
 
                 const threatScore = generateThreatScore(log.is_vpn, isAdv);
                 const scoreColor = threatScore > 75 ? 'threat-score-high' : 'threat-score-low';
@@ -820,6 +822,8 @@
                 flowData = { duration: 15, fwd_pkt_len_mean: 850, bwd_pkt_len_mean: 950, flow_iat_mean: 0.08, flow_iat_std: 0.04, packets_per_sec: 400 };
             } else if (type === 'openvpn') {
                 flowData = { duration: 20, fwd_pkt_len_mean: 600, bwd_pkt_len_mean: 700, flow_iat_mean: 0.15, flow_iat_std: 0.1, packets_per_sec: 200 };
+            } else if (type === 'longvpn') {
+                flowData = { duration: 45, fwd_pkt_len_mean: 850, bwd_pkt_len_mean: 950, flow_iat_mean: 0.08, flow_iat_std: 0.04, packets_per_sec: 400 };
             } else if (type === 'adversarial') {
                 isAdv = true;
                 advCount++;
@@ -835,7 +839,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(flowData)
                 });
-                if (res.ok) fetchStats();
+                if (res.ok) {
+                    const result = await res.json();
+                    if (result.is_tle) {
+                        showToast("Time Limit Exceeded (TLE)", `VPN session ran for ${flowData.duration}s, past the 30s policy limit. Flagged for review.`);
+                    }
+                    fetchStats();
+                }
             } catch (err) {}
         }
 

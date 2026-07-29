@@ -1988,6 +1988,57 @@
             return !!(navigator.brave && typeof navigator.brave.isBrave === 'function');
         }
 
+        function isAutomationFlagged() {
+            // Headless automation tools (Selenium, Puppeteer, Playwright) set this
+            // explicitly. A real human-driven browser never sets it.
+            return navigator.webdriver === true;
+        }
+
+        function getFontFingerprint() {
+            // VM/headless/minimal-container browsers typically have far fewer
+            // installed fonts than a real desktop. We measure whether text
+            // rendered in each candidate font differs in width from three
+            // generic baseline fonts -- if it never differs, the font isn't
+            // actually installed and the browser fell back to a default.
+            const candidateFonts = [
+                'Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New',
+                'Comic Sans MS', 'Trebuchet MS', 'Impact', 'Tahoma', 'Segoe UI',
+                'Calibri', 'Cambria', 'Consolas', 'Garamond', 'Palatino Linotype'
+            ];
+            const baselineFonts = ['monospace', 'sans-serif', 'serif'];
+            const testString = 'mmmmmmmmmmlli';
+            const testSize = '72px';
+
+            try {
+                const span = document.createElement('span');
+                span.style.position = 'absolute';
+                span.style.left = '-9999px';
+                span.style.fontSize = testSize;
+                span.innerText = testString;
+                document.body.appendChild(span);
+
+                const baselineWidths = {};
+                baselineFonts.forEach(bf => {
+                    span.style.fontFamily = bf;
+                    baselineWidths[bf] = span.offsetWidth;
+                });
+
+                let detectedCount = 0;
+                candidateFonts.forEach(font => {
+                    const isDetected = baselineFonts.some(bf => {
+                        span.style.fontFamily = `'${font}', ${bf}`;
+                        return span.offsetWidth !== baselineWidths[bf];
+                    });
+                    if (isDetected) detectedCount++;
+                });
+
+                document.body.removeChild(span);
+                return { font_count: detectedCount, low_font_count: detectedCount <= 2 };
+            } catch (e) {
+                return { font_count: 0, low_font_count: true };
+            }
+        }
+
         function probeDnsAdBlock() {
             // Extension-based blockers fail with net::ERR_BLOCKED_BY_CLIENT before
             // any network activity; DNS-level blockers (Pi-hole/NextDNS/AdGuard DNS)
@@ -2007,7 +2058,7 @@
                 });
         }
 
-        function renderEnvSignals(gpuInfo, isBrave, dnsAdBlockInfo) {
+        function renderEnvSignals(gpuInfo, isBrave, dnsAdBlockInfo, automationFlagged, fontInfo) {
             const container = document.getElementById('env-signals');
             if (!container) return;
             const badges = [];
@@ -2017,6 +2068,14 @@
                     ? { flag: true, label: 'Virtual/software GPU detected' }
                     : { flag: false, label: 'Real GPU detected' }
             );
+
+            if (automationFlagged) {
+                badges.push({ flag: true, label: 'Browser automation detected' });
+            }
+
+            if (fontInfo && fontInfo.low_font_count) {
+                badges.push({ flag: true, label: `Minimal font set (${fontInfo.font_count} detected)` });
+            }
 
             if (isBrave) {
                 badges.push({ flag: false, label: 'Brave browser' });
@@ -2062,6 +2121,8 @@
             const dnsAdBlockPromise = probeDnsAdBlock();
             const gpuInfo = getGPUFingerprint();
             const isBrave = isBraveBrowser();
+            const automationFlagged = isAutomationFlagged();
+            const fontInfo = getFontFingerprint();
             let clientIp = null;
             try {
                 const ipRes = await fetch('https://api.ipify.org?format=json');
@@ -2149,7 +2210,9 @@
                 timezone: timezone,
                 language: language,
                 languages: languages,
-                is_virtual_gpu: gpuInfo.is_virtual_gpu
+                is_virtual_gpu: gpuInfo.is_virtual_gpu,
+                is_automation_flagged: automationFlagged,
+                low_font_count: fontInfo.low_font_count
             };
 
             let data;
@@ -2181,11 +2244,11 @@
             const verdictPanel = document.getElementById('verdict-panel');
 
             if (data.is_vpn) {
-                verdictText.innerText = 'VPN DETECTED';
+                verdictText.innerText = data.is_tle ? 'VPN DETECTED — TLE' : 'VPN DETECTED';
                 verdictProtocol.innerText = data.vpn_protocol || 'IKEv2';
                 verdictPanel.className = 'verdict-card vpn-alert';
                 document.getElementById('f-proto').innerText = data.vpn_protocol || 'IKEv2';
-                document.getElementById('f-proto-sub').innerText = 'VPN Protocol';
+                document.getElementById('f-proto-sub').innerText = data.is_tle ? 'Time Limit Exceeded' : 'VPN Protocol';
             } else {
                 verdictText.innerText = 'RESIDENTIAL SECURE';
                 verdictProtocol.innerText = 'None';
@@ -2197,7 +2260,7 @@
             document.getElementById('explain-text').innerText = data.explanation || 'No model explanation available.';
             updateGauge((data.confidence || 0.82) * 100);
 
-            renderEnvSignals(gpuInfo, isBrave, dnsAdBlockInfo);
+            renderEnvSignals(gpuInfo, isBrave, dnsAdBlockInfo, automationFlagged, fontInfo);
 
             const positiveScale = data.is_vpn ? 1.0 : 0.4;
             document.getElementById('bar-dc').style.width = `${Math.round(62 * positiveScale)}%`;

@@ -1,4 +1,6 @@
 import os
+import time
+from collections import defaultdict, deque
 import joblib
 import numpy as np
 import pandas as pd
@@ -50,6 +52,30 @@ DATACENTER_KEYWORDS = [
     "amazon web services", "microsoft corporation", "ovh SAS", "scaleway", "vultr",
     "obfuscated", "hide my ass", "hidemyass"
 ]
+# Connections classified as VPN that run longer than this are flagged as a
+# Time Limit Exceeded (TLE) policy violation -- e.g. a tunnel that's stayed
+# open well past what's expected for the traffic pattern being analyzed.
+VPN_TLE_THRESHOLD_SECONDS = 30
+
+# Simple in-memory sliding-window rate limiter for /api/ingest. Good enough for
+# a single-process demo deployment; a multi-worker/multi-instance deployment
+# would need a shared store (e.g. Redis) instead.
+RATE_LIMIT_WINDOW_SECONDS = 60
+RATE_LIMIT_MAX_REQUESTS = 30
+_rate_limit_buckets: dict = defaultdict(deque)
+
+def enforce_rate_limit(client_key: str):
+    now = time.time()
+    bucket = _rate_limit_buckets[client_key]
+    while bucket and now - bucket[0] > RATE_LIMIT_WINDOW_SECONDS:
+        bucket.popleft()
+    if len(bucket) >= RATE_LIMIT_MAX_REQUESTS:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded: max {RATE_LIMIT_MAX_REQUESTS} requests per {RATE_LIMIT_WINDOW_SECONDS}s."
+        )
+    bucket.append(now)
+
 def is_private_ip(ip: Optional[str]) -> bool:
     if not ip:
         return True
@@ -166,6 +192,8 @@ class FlowInput(BaseModel):
     longitude: Optional[float] = Field(default=None, description="Client longitude")
     has_geo_permission: bool = Field(default=False, description="Whether GPS permission was granted")
     is_virtual_gpu: bool = Field(default=False, description="Whether WebGL reports a software/virtual renderer (datacenter VM signal)")
+    is_automation_flagged: bool = Field(default=False, description="Whether navigator.webdriver is set (headless/automation signal)")
+    low_font_count: bool = Field(default=False, description="Whether the client has an unusually small installed-font count (VM/headless signal)")
 def is_timezone_mismatch(tz_client: Optional[str], tz_ip: Optional[str]) -> int:
     if not tz_client or not tz_ip:
         return 0
@@ -202,8 +230,11 @@ class IngestResponse(BaseModel):
     vpn_protocol: Optional[str]
     confidence: float
     explanation: str
+    is_tle: bool = False
 @app.post("/api/ingest", response_model=IngestResponse)
 def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db), tenant_id: str = Depends(get_tenant_id)):
+    rate_limit_key = request.client.host if request.client else "unknown"
+    enforce_rate_limit(rate_limit_key)
     bytes_per_sec = flow.packets_per_sec * (flow.fwd_pkt_len_mean + flow.bwd_pkt_len_mean)
     jitter_ratio = flow.flow_iat_std / flow.flow_iat_mean if flow.flow_iat_mean > 0 else 0.0
     client_ip = flow.client_ip
@@ -288,6 +319,8 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
     flow_dict['is_known_vpn_ip'] = is_known_vpn_ip
     flow_dict['proxy_header_detected'] = proxy_header_detected
     flow_dict['is_virtual_gpu'] = 1 if flow.is_virtual_gpu else 0
+    flow_dict['is_automation_flagged'] = 1 if flow.is_automation_flagged else 0
+    flow_dict['low_font_count'] = 1 if flow.low_font_count else 0
     if flow.is_browser:
         active_features = timing_features
         active_model_s1 = model_br_s1
@@ -341,6 +374,9 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         top_feature_s2, top_val_s2 = feature_importance_s2[0]
         direction_s2 = "higher" if top_val_s2 > 0 else "lower"
         explanation_str += f" Protocol identified as {vpn_proto} due to {direction_s2} value of '{top_feature_s2}'."
+    is_tle = bool(is_vpn_pred and flow.duration > VPN_TLE_THRESHOLD_SECONDS)
+    if is_tle:
+        explanation_str += f" TLE: VPN session duration ({flow.duration:.1f}s) exceeded the {VPN_TLE_THRESHOLD_SECONDS}s policy limit."
     log_entry = FlowInferenceLog(
         tenant_id=tenant_id,
         duration=flow.duration,
@@ -363,7 +399,10 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         is_datacenter_ip=is_datacenter_ip,
         is_known_vpn_ip=is_known_vpn_ip,
         proxy_header_detected=proxy_header_detected,
-        is_virtual_gpu=1 if flow.is_virtual_gpu else 0
+        is_virtual_gpu=1 if flow.is_virtual_gpu else 0,
+        is_automation_flagged=1 if flow.is_automation_flagged else 0,
+        low_font_count=1 if flow.low_font_count else 0,
+        is_tle=1 if is_tle else 0
     )
     db.add(log_entry)
     db.commit()
@@ -372,7 +411,8 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         is_vpn=is_vpn_pred,
         vpn_protocol=vpn_proto,
         confidence=confidence,
-        explanation=explanation_str
+        explanation=explanation_str,
+        is_tle=is_tle
     )
 @app.get("/api/stats")
 def get_stats(db: Session = Depends(get_db), tenant_id: str = Depends(get_tenant_id)):
@@ -416,7 +456,8 @@ def get_history(db: Session = Depends(get_db), tenant_id: str = Depends(get_tena
             "is_vpn": log.is_vpn,
             "vpn_protocol": log.vpn_protocol,
             "confidence": round(log.confidence, 4),
-            "explanation": log.explanation
+            "explanation": log.explanation,
+            "is_tle": bool(log.is_tle)
         } for log in logs
     ]
 @app.get("/", response_class=HTMLResponse)

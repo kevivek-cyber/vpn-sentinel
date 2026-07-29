@@ -19,7 +19,7 @@ The system captures traffic using a live packet sniffer (`live_monitor.py`) or r
 
 ### 2️⃣ Stage 1: Anomaly Detection (VPN vs. Non-VPN)
 The extracted features are fed into our **Stage 1 Random Forest Classifier**. 
-- The model evaluates 16 flow features or 15 browser signals to determine if the traffic originates from a VPN/Proxy or a standard residential ISP.
+- The model evaluates 16 flow features or 17 browser signals to determine if the traffic originates from a VPN/Proxy or a standard residential ISP.
 - Trained against adversarial traffic-shaping (packet padding & timing delays), ensuring high evasion resistance.
 
 ### 3️⃣ Stage 2: Protocol Fingerprinting
@@ -87,16 +87,18 @@ Our models are trained on highly specific dimensions to prevent overfitting and 
 | Model Type | Features Used | Key Data Points |
 | :--- | :--- | :--- |
 | **Flow Model** | 16 Features | `duration`, `packets_per_sec`, Packet length constraints (min/max/std), IAT constraints (min/max/std), `jitter_ratio` |
-| **Browser Model** | 15 Features | Timing basics + `webrtc_blocked`, `timezone_mismatch_score`, `language_mismatch_score`, `is_datacenter_ip`, `is_virtual_gpu` |
+| **Browser Model** | 17 Features | Timing basics + `webrtc_blocked`, `timezone_mismatch_score`, `language_mismatch_score`, `is_datacenter_ip`, `is_virtual_gpu`, `is_automation_flagged`, `low_font_count` |
 
 ---
 
 ## 🚀 Key Capabilities
 
 - **Adversarial Robustness:** Resists traffic shaping, packet padding, and evasion tools.
-- **Glassmorphism SOC Dashboard:** Beautiful, real-time frontend mapping global threats and traffic logs.
+- **Real-Time SOC Dashboard:** Live frontend mapping global threats and traffic logs, responsive on desktop and mobile.
 - **Protocol Deep-Dive:** Distinguishes between modern UDP/TCP VPN protocols seamlessly.
 - **No-Payload Inspection:** 100% privacy-compliant; we never decrypt or inspect packet payloads (Deep Packet Inspection is not required).
+- **TLE Policy Enforcement:** VPN sessions that run past a configurable duration threshold (default 30s) are flagged as a Time Limit Exceeded policy violation.
+- **Rate Limiting:** `/api/ingest` is capped per-client to prevent abuse of the inference pipeline.
 
 ---
 

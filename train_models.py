@@ -93,14 +93,15 @@ timing_features = [
     'duration', 'flow_iat_mean', 'flow_iat_std', 'jitter_ratio', 'packets_per_sec',
     'webrtc_ip_mismatch', 'webrtc_blocked', 'timezone_mismatch_score', 'language_mismatch_score',
     'geo_ip_distance_km', 'has_geo_permission', 'is_datacenter_ip', 'is_known_vpn_ip', 'proxy_header_detected',
-    'is_virtual_gpu'
+    'is_virtual_gpu', 'is_automation_flagged', 'low_font_count'
 ]
 def apply_feature_noise(X_df, random_state=42):
     np.random.seed(random_state)
     X_pert = X_df.copy()
     perturb_cols = [
         'timezone_mismatch_score', 'language_mismatch_score',
-        'webrtc_ip_mismatch', 'webrtc_blocked', 'proxy_header_detected', 'is_virtual_gpu'
+        'webrtc_ip_mismatch', 'webrtc_blocked', 'proxy_header_detected', 'is_virtual_gpu',
+        'is_automation_flagged', 'low_font_count'
     ]
     for col in perturb_cols:
         if col in X_pert.columns:

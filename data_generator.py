@@ -105,6 +105,8 @@ def generate_browser_flows(num_samples=5000):
             is_known_vpn_ip = 0
             proxy_header_detected = 0
             is_virtual_gpu = np.random.choice([0, 1], p=[0.97, 0.03])
+            is_automation_flagged = np.random.choice([0, 1], p=[0.98, 0.02])
+            low_font_count = np.random.choice([0, 1], p=[0.95, 0.05])
         else:
             protocol = np.random.choice([0, 1, 2], p=[0.4, 0.4, 0.2])
             flow_iat_mean = np.random.uniform(0.005, 0.350)
@@ -132,6 +134,8 @@ def generate_browser_flows(num_samples=5000):
             is_known_vpn_ip = np.random.choice([0, 1], p=[0.25, 0.75])
             proxy_header_detected = np.random.choice([0, 1], p=[0.80, 0.20])
             is_virtual_gpu = np.random.choice([0, 1], p=[0.80, 0.20])
+            is_automation_flagged = np.random.choice([0, 1], p=[0.85, 0.15])
+            low_font_count = np.random.choice([0, 1], p=[0.75, 0.25])
         duration = max(0.2, duration)
         flow_iat_mean = max(0.001, flow_iat_mean)
         flow_iat_std = max(0.0005, flow_iat_std)
@@ -155,6 +159,8 @@ def generate_browser_flows(num_samples=5000):
             'is_known_vpn_ip': is_known_vpn_ip,
             'proxy_header_detected': proxy_header_detected,
             'is_virtual_gpu': is_virtual_gpu,
+            'is_automation_flagged': is_automation_flagged,
+            'low_font_count': low_font_count,
             'is_vpn': is_vpn,
             'vpn_protocol': protocol
         })
