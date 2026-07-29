@@ -9,38 +9,11 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="/assets/app.css">
+    <script src="/assets/app.js" defer></script>
     <style>
-        :root {
-            --bg-color: #0a0b0e;
-            --panel-bg: #141519;
-            --panel-bg-soft: #101114;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-strong: rgba(255, 255, 255, 0.16);
-            --accent-primary: #4f7cff;
-            --accent-primary-soft: rgba(79, 124, 255, 0.12);
-            --accent-vpn: #ef4a5a;
-            --accent-vpn-soft: rgba(239, 74, 90, 0.12);
-            --accent-safe: #2dd4a7;
-            --accent-safe-soft: rgba(45, 212, 167, 0.12);
-            --accent-warn: #f0a83c;
-            --accent-warn-soft: rgba(240, 168, 60, 0.12);
-            --text-main: #eceef1;
-            --text-muted: #8b8e98;
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --font-mono: 'JetBrains Mono', monospace;
-        }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, sans-serif;
-            scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-        }
 
-        html, body { min-height: 100%; }
 
         body {
             background: var(--bg-color);
@@ -48,94 +21,18 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        a { color: inherit; text-decoration: none; }
 
         /* ===== Top Navigation ===== */
-        .topnav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 0 28px;
-            height: 60px;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(10, 11, 14, 0.9);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 200;
-        }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
 
-        .brand-mark {
-            width: 26px;
-            height: 26px;
-            border-radius: 7px;
-            background: var(--accent-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 0.72rem;
-            color: #fff;
-            letter-spacing: -0.02em;
-        }
 
-        .brand-name {
-            font-size: 0.92rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-        }
 
-        .brand-name .sub {
-            color: var(--text-muted);
-            font-weight: 500;
-        }
 
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
 
-        .nav-links a {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            padding: 8px 12px;
-            border-radius: var(--radius-sm);
-            color: var(--text-muted);
-            font-size: 0.86rem;
-            font-weight: 500;
-            transition: background 0.15s ease, color 0.15s ease;
-        }
 
-        .nav-links a svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-        .nav-links a:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
 
-        .nav-links a.active {
-            color: var(--text-main);
-            background: var(--accent-primary-soft);
-        }
 
-        .nav-toggle {
-            display: none;
-            width: 36px;
-            height: 36px;
-            align-items: center;
-            justify-content: center;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            color: var(--text-main);
-            cursor: pointer;
-        }
 
         /* ===== Page Header ===== */
         .page-header {
@@ -242,19 +139,7 @@
             align-items: center;
         }
 
-        .btn-ghost {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 6px 12px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 500;
-            font-family: 'Inter', sans-serif;
-        }
 
-        .btn-ghost:hover { background: rgba(255, 255, 255, 0.09); }
 
         #threatMap { flex-grow: 1; width: 100%; background: #08090b; }
         .leaflet-container { font-family: 'Inter', sans-serif; background: transparent !important; }
@@ -338,18 +223,7 @@
 
         tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
-        .badge {
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 0.76rem;
-            font-weight: 600;
-            display: inline-block;
-        }
 
-        .badge.vpn-flag { background: var(--accent-vpn-soft); color: var(--accent-vpn); }
-        .badge.safe-flag { background: var(--accent-safe-soft); color: var(--accent-safe); }
-        .badge.adv-flag { background: var(--accent-warn-soft); color: var(--accent-warn); }
-        .badge.tle-flag { background: rgba(239, 74, 90, 0.18); color: var(--accent-vpn); border: 1px solid var(--accent-vpn); }
 
         .threat-score-high { color: var(--accent-vpn); font-weight: 600; }
         .threat-score-low { color: var(--accent-safe); }
@@ -408,28 +282,9 @@
         }
 
         @media (max-width: 860px) {
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 60px;
-                left: 12px;
-                right: 12px;
-                flex-direction: column;
-                align-items: stretch;
-                gap: 2px;
-                background: #16171c;
-                border: 1px solid var(--border-color);
-                border-radius: var(--radius-md);
-                padding: 8px;
-                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
-            }
-            .nav-links.open { display: flex; }
-            .nav-links a { padding: 12px; min-height: 44px; }
-            .nav-toggle { display: flex; }
         }
 
         @media (max-width: 700px) {
-            .topnav { padding: 0 16px; }
             .page-header { padding: 18px 16px 0 16px; flex-wrap: wrap; row-gap: 10px; }
             .dashboard-container { padding: 16px 16px 32px 16px; gap: 12px; }
             .chart-container-small { grid-column: span 2; height: 280px; }
@@ -443,17 +298,60 @@
             .search-input { width: 100%; }
             .explain-box { max-width: 100%; }
             th, td { padding: 10px; }
-            .nav-toggle { width: 40px; height: 40px; }
-            .btn-ghost { padding: 8px 14px; }
         }
 
         @media (max-width: 420px) {
             .simulator-grid { grid-template-columns: 1fr; }
             .sim-btn.adv { grid-column: span 1; }
         }
+
+        /* On a phone a 6-column, 720px-wide table means horizontal scrolling for
+           every row. Below 700px each row becomes a self-contained card with the
+           column name shown beside its value. */
+        @media (max-width: 700px) {
+            .table-wrapper { overflow-x: visible; }
+            .log-panel table { min-width: 0; }
+            .log-panel thead { display: none; }
+            .log-panel tr {
+                display: block;
+                background: var(--panel-bg-soft);
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius-sm);
+                padding: 12px 14px;
+                margin-bottom: 10px;
+            }
+            .log-panel tr:hover td { background: transparent; }
+            .log-panel td {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 14px;
+                padding: 5px 0;
+                border: none;
+                text-align: right;
+            }
+            .log-panel td::before {
+                content: attr(data-label);
+                color: var(--text-muted);
+                font-size: 0.72rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.03em;
+                text-align: left;
+                flex-shrink: 0;
+            }
+            /* The SHAP explanation needs the full width to stay readable. */
+            .log-panel td[data-label="SHAP Justification"] { flex-direction: column; text-align: left; }
+            .log-panel td[data-label="SHAP Justification"]::before { margin-bottom: 6px; }
+            /* The "no logs yet" placeholder spans all columns and has no label. */
+            .log-panel td[colspan]::before { content: none; }
+            .log-panel td[colspan] { display: block; text-align: center; }
+        }
     </style>
 </head>
 <body>
+
+    <a class="skip-link" href="#main">Skip to main content</a>
 
     <nav class="topnav">
         <a href="/" class="brand">
@@ -466,7 +364,7 @@
         </button>
 
         <div class="nav-links" id="navLinks">
-            <a href="/" class="active">
+            <a href="/">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
                 Dashboard
             </a>
@@ -489,7 +387,7 @@
         </div>
     </nav>
 
-    <main>
+    <main id="main">
         <div class="page-header">
             <div class="header-title">Live Traffic Analytics</div>
             <div class="status-badge" id="backend-status">
@@ -502,22 +400,22 @@
 
             <div class="panel stat-card">
                 <div class="stat-header">Total Handled Connections</div>
-                <div class="stat-value" id="card-total">0</div>
+                <div class="stat-value" id="card-total" class="skeleton">0</div>
                 <div class="stat-sub">Live monitored flows</div>
             </div>
             <div class="panel stat-card">
                 <div class="stat-header">Active VPN Tunnels</div>
-                <div class="stat-value" id="card-vpn" style="color: var(--accent-vpn);">0</div>
+                <div class="stat-value" id="card-vpn" class="skeleton" style="color: var(--accent-vpn);">0</div>
                 <div class="stat-sub" id="card-vpn-ratio">0% tunnel ratio</div>
             </div>
             <div class="panel stat-card">
                 <div class="stat-header">Clean Traffic</div>
-                <div class="stat-value" id="card-safe" style="color: var(--accent-safe);">0</div>
+                <div class="stat-value" id="card-safe" class="skeleton" style="color: var(--accent-safe);">0</div>
                 <div class="stat-sub">Normal web & VoIP activity</div>
             </div>
             <div class="panel stat-card">
                 <div class="stat-header">Evasion Attempts</div>
-                <div class="stat-value" id="card-adv" style="color: var(--accent-warn);">0</div>
+                <div class="stat-value" id="card-adv" class="skeleton" style="color: var(--accent-warn);">0</div>
                 <div class="stat-sub">Adversarial flows blocked</div>
             </div>
 
@@ -591,14 +489,6 @@
     <div id="toast-container"></div>
 
     <script>
-        function toggleNav(force) {
-            const links = document.getElementById('navLinks');
-            const open = typeof force === 'boolean' ? force : !links.classList.contains('open');
-            links.classList.toggle('open', open);
-        }
-        document.querySelectorAll('.nav-links a').forEach(link => {
-            link.addEventListener('click', () => toggleNav(false));
-        });
 
         const BACKEND_URL = (window.location.protocol === 'file:' || window.location.origin === 'null')
             ? 'http://127.0.0.1:8000'
@@ -748,6 +638,10 @@
             const statsRes = await fetch(`${API_URL}/stats?tenant=${tenantId}`);
             const stats = await statsRes.json();
 
+            // First successful poll: swap skeletons for real values.
+            ['card-total','card-vpn','card-safe','card-adv'].forEach(id => {
+                document.getElementById(id).classList.remove('skeleton');
+            });
             document.getElementById('card-total').innerText = stats.total_connections;
             document.getElementById('card-vpn').innerText = stats.vpn_count;
             document.getElementById('card-safe').innerText = stats.non_vpn_count;
@@ -791,18 +685,18 @@
 
                 return `
                     <tr>
-                        <td style="font-weight: 500;">${dateStr}</td>
-                        <td style="font-family: var(--font-mono); font-size: 0.82rem;">
+                        <td data-label="Timestamp" style="font-weight: 500;">${dateStr}</td>
+                        <td data-label="Source IP / Threat Score" style="font-family: var(--font-mono); font-size: 0.82rem;">
                             ${generateRandomIP()}<br>
                             <span class="${scoreColor}">Threat Score: ${threatScore}/100</span>
                         </td>
-                        <td style="color: var(--text-muted); font-size: 0.78rem; font-family: var(--font-mono);">
+                        <td data-label="Flow Profile" style="color: var(--text-muted); font-size: 0.78rem; font-family: var(--font-mono);">
                             Dur: ${log.duration.toFixed(2)}s<br>
                             Len: ${log.fwd_pkt_len_mean.toFixed(0)} Fwd / ${log.bwd_pkt_len_mean.toFixed(0)} Bwd
                         </td>
-                        <td>${predBadge}</td>
-                        <td style="font-weight: 700;">${(log.confidence * 100).toFixed(1)}%</td>
-                        <td>
+                        <td data-label="AI Prediction">${predBadge}</td>
+                        <td data-label="Confidence" style="font-weight: 700;">${(log.confidence * 100).toFixed(1)}%</td>
+                        <td data-label="SHAP Justification">
                             <div class="explain-box">${log.explanation}</div>
                         </td>
                     </tr>
