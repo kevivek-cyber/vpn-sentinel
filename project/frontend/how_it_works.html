@@ -45,13 +45,6 @@
             padding: 32px;
         }
 
-        h1 {
-            font-size: 2.1rem;
-            font-weight: 800;
-            margin-bottom: 12px;
-            letter-spacing: -0.02em;
-        }
-
         p.lede {
             color: var(--text-muted);
             font-size: 1.02rem;
@@ -177,7 +170,6 @@
         @media (max-width: 700px) {
             .doc-container { padding: 20px 16px 40px 16px; }
             .panel { padding: 20px; }
-            h1 { font-size: 1.6rem; }
             p.lede { font-size: 0.95rem; }
             p.hint { margin-bottom: 28px; }
             .tree-container { gap: 24px; }
@@ -227,7 +219,7 @@
     </nav>
 
     <div class="doc-container" id="main">
-        <div class="panel">
+        <div class="panel rise rise-1">
             <h1>The 6 AI Models</h1>
             <p class="lede">
                 VPN-Sentinel uses a branched, multi-stage architecture. Six distinct models — four Random Forest classifiers and two SHAP explainers — work together depending on the traffic source.
@@ -246,13 +238,13 @@
                 </div>
 
                 <div class="branch-row">
-                    <div class="model-card" id="node-flow-s1" onclick="openModal('flow-s1')" style="border-top: 2px solid var(--accent-primary);">
+                    <div class="panel-interactive model-card" id="node-flow-s1" onclick="openModal('flow-s1')" style="border-top: 2px solid var(--accent-primary);">
                         <div class="model-icon">🔍</div>
                         <div class="model-title">Flow Stage 1 Model</div>
                         <div class="model-desc">Detects VPN vs Clean on raw network packets.</div>
                     </div>
 
-                    <div class="model-card" id="node-browser-s1" onclick="openModal('browser-s1')" style="border-top: 2px solid var(--accent-safe);">
+                    <div class="panel-interactive model-card" id="node-browser-s1" onclick="openModal('browser-s1')" style="border-top: 2px solid var(--accent-safe);">
                         <div class="model-icon">🌐</div>
                         <div class="model-title">Browser Stage 1 Model</div>
                         <div class="model-desc">Detects VPN vs Clean using WebRTC & Geo-IP context.</div>
@@ -260,13 +252,13 @@
                 </div>
 
                 <div class="branch-row">
-                    <div class="model-card" id="node-flow-s2" onclick="openModal('flow-s2')" style="border-top: 2px solid var(--accent-primary);">
+                    <div class="panel-interactive model-card" id="node-flow-s2" onclick="openModal('flow-s2')" style="border-top: 2px solid var(--accent-primary);">
                         <div class="model-icon">🧬</div>
                         <div class="model-title">Flow Stage 2 Model</div>
                         <div class="model-desc">Fingerprints exact VPN Protocols (OpenVPN, WireGuard).</div>
                     </div>
 
-                    <div class="model-card" id="node-browser-s2" onclick="openModal('browser-s2')" style="border-top: 2px solid var(--accent-safe);">
+                    <div class="panel-interactive model-card" id="node-browser-s2" onclick="openModal('browser-s2')" style="border-top: 2px solid var(--accent-safe);">
                         <div class="model-icon">🧩</div>
                         <div class="model-title">Browser Stage 2 Model</div>
                         <div class="model-desc">Fingerprints VPN Protocols in browser environments.</div>
@@ -274,13 +266,13 @@
                 </div>
 
                 <div class="branch-row">
-                    <div class="model-card" id="node-flow-shap" onclick="openModal('flow-shap')" style="border-top: 2px solid var(--accent-vpn);">
+                    <div class="panel-interactive model-card" id="node-flow-shap" onclick="openModal('flow-shap')" style="border-top: 2px solid var(--accent-vpn);">
                         <div class="model-icon">🧠</div>
                         <div class="model-title">Flow SHAP Explainer</div>
                         <div class="model-desc">Explains exactly why the network flow was flagged.</div>
                     </div>
 
-                    <div class="model-card" id="node-browser-shap" onclick="openModal('browser-shap')" style="border-top: 2px solid var(--accent-vpn);">
+                    <div class="panel-interactive model-card" id="node-browser-shap" onclick="openModal('browser-shap')" style="border-top: 2px solid var(--accent-vpn);">
                         <div class="model-icon">💡</div>
                         <div class="model-title">Browser SHAP Explainer</div>
                         <div class="model-desc">Explains the web telemetry signals that triggered the flag.</div>
@@ -386,6 +378,10 @@
                 document.getElementById('modelModal').classList.add('active');
             }
         }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeModal();
+        });
 
         function closeModal() {
             document.getElementById('modelModal').classList.remove('active');

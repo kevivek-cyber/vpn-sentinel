@@ -96,22 +96,8 @@
 
         .stat-card { grid-column: span 1; }
 
-        .stat-header {
-            color: var(--text-muted);
-            font-size: 0.84rem;
-            font-weight: 500;
-            margin-bottom: 10px;
-        }
 
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: var(--font-mono);
-            letter-spacing: -0.02em;
-            margin-bottom: 4px;
-        }
 
-        .stat-sub { font-size: 0.8rem; color: var(--text-muted); }
 
         .map-container {
             grid-column: span 2;
@@ -126,11 +112,6 @@
         .simulator-panel { grid-column: span 4; }
         .log-panel { grid-column: span 4; }
 
-        .chart-title {
-            font-size: 0.98rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
 
         .map-toolbar {
             padding: 16px 20px 0 20px;
@@ -187,41 +168,13 @@
             flex-wrap: wrap;
         }
 
-        .search-input {
-            padding: 8px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-            background: var(--panel-bg-soft);
-            color: var(--text-main);
-            outline: none;
-            width: 230px;
-            font-size: 0.85rem;
-        }
 
         .search-input:focus { border-color: var(--border-strong); }
 
-        .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 720px; }
 
-        th {
-            padding: 10px 14px;
-            color: var(--text-muted);
-            font-size: 0.78rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            border-bottom: 1px solid var(--border-color);
-            text-align: left;
-        }
 
-        td {
-            padding: 14px;
-            font-size: 0.88rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-            vertical-align: top;
-        }
 
-        tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 
 
@@ -293,9 +246,6 @@
             .sim-btn { padding: 14px 10px; font-size: 0.82rem; }
             .sim-btn.adv { grid-column: span 2; }
             .stat-card { padding: 16px; }
-            .stat-value { font-size: 1.5rem; }
-            .stat-header { font-size: 0.78rem; }
-            .search-input { width: 100%; }
             .explain-box { max-width: 100%; }
             th, td { padding: 10px; }
         }
@@ -309,7 +259,6 @@
            every row. Below 700px each row becomes a self-contained card with the
            column name shown beside its value. */
         @media (max-width: 700px) {
-            .table-wrapper { overflow-x: visible; }
             .log-panel table { min-width: 0; }
             .log-panel thead { display: none; }
             .log-panel tr {
@@ -388,8 +337,11 @@
     </nav>
 
     <main id="main">
-        <div class="page-header">
-            <div class="header-title">Live Traffic Analytics</div>
+        <div class="page-header rise">
+            <div>
+                <div class="page-title">Live Traffic Analytics</div>
+                <div class="page-subtitle">Real-time VPN classification with SHAP explanations</div>
+            </div>
             <div class="status-badge" id="backend-status">
                 <div class="status-dot"></div>
                 Connecting to core...
@@ -398,51 +350,51 @@
 
         <div class="dashboard-container">
 
-            <div class="panel stat-card">
-                <div class="stat-header">Total Handled Connections</div>
-                <div class="stat-value" id="card-total" class="skeleton">0</div>
+            <div class="panel stat-card rise rise-1">
+                <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>Total Handled Connections</div>
+                <div class="stat-value skeleton" id="card-total">0</div>
                 <div class="stat-sub">Live monitored flows</div>
             </div>
-            <div class="panel stat-card">
-                <div class="stat-header">Active VPN Tunnels</div>
-                <div class="stat-value" id="card-vpn" class="skeleton" style="color: var(--accent-vpn);">0</div>
+            <div class="panel stat-card rise rise-2">
+                <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5.25 3.5 9.74 8 11 4.5-1.26 8-5.75 8-11V5l-8-3z"/></svg>Active VPN Tunnels</div>
+                <div class="stat-value skeleton" id="card-vpn" style="color: var(--accent-vpn);">0</div>
                 <div class="stat-sub" id="card-vpn-ratio">0% tunnel ratio</div>
             </div>
-            <div class="panel stat-card">
-                <div class="stat-header">Clean Traffic</div>
-                <div class="stat-value" id="card-safe" class="skeleton" style="color: var(--accent-safe);">0</div>
-                <div class="stat-sub">Normal web & VoIP activity</div>
+            <div class="panel stat-card rise rise-3">
+                <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Clean Traffic</div>
+                <div class="stat-value skeleton" id="card-safe" style="color: var(--accent-safe);">0</div>
+                <div class="stat-sub">Normal web &amp; VoIP activity</div>
             </div>
-            <div class="panel stat-card">
-                <div class="stat-header">Evasion Attempts</div>
-                <div class="stat-value" id="card-adv" class="skeleton" style="color: var(--accent-warn);">0</div>
+            <div class="panel stat-card rise rise-4">
+                <div class="stat-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Evasion Attempts</div>
+                <div class="stat-value skeleton" id="card-adv" style="color: var(--accent-warn);">0</div>
                 <div class="stat-sub">Adversarial flows blocked</div>
             </div>
 
-            <div class="panel map-container">
+            <div class="panel map-container rise rise-5">
                 <div class="map-toolbar">
-                    <div class="chart-title" style="margin: 0;">Global Threat Map</div>
+                    <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>Global Threat Map</div>
                     <button class="btn-ghost" onclick="toggleMapFullscreen()">Fullscreen</button>
                 </div>
                 <div id="threatMap"></div>
             </div>
 
-            <div class="panel chart-container-small">
-                <div class="chart-title">Time Series Volume</div>
+            <div class="panel chart-container-small rise rise-5">
+                <div class="panel-head"><div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Time Series Volume</div></div>
                 <div style="position: relative; height: 250px;">
                     <canvas id="timeSeriesChart"></canvas>
                 </div>
             </div>
 
-            <div class="panel chart-container-small">
-                <div class="chart-title">Protocol Distribution</div>
+            <div class="panel chart-container-small rise rise-5">
+                <div class="panel-head"><div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>Protocol Distribution</div></div>
                 <div style="position: relative; height: 250px; display: flex; justify-content: center;">
                     <canvas id="pieChart"></canvas>
                 </div>
             </div>
 
-            <div class="panel simulator-panel">
-                <div class="chart-title" style="margin-bottom: 6px;">Traffic Simulation Console</div>
+            <div class="panel simulator-panel rise rise-6">
+                <div class="panel-title" style="margin-bottom: 6px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Traffic Simulation Console</div>
                 <p style="font-size: 0.86rem; color: var(--text-muted);">Simulate real-time packets to trigger ML classifications and SHAP explanations. Threat locations are randomly generated for the map.</p>
                 <div class="simulator-grid">
                     <button class="sim-btn safe" onclick="simulateTraffic('web')">Simulate Web Traffic</button>
@@ -454,10 +406,10 @@
                 </div>
             </div>
 
-            <div class="panel log-panel">
+            <div class="panel log-panel rise rise-6">
                 <div class="log-panel-head">
-                    <div class="chart-title" style="margin: 0;">Real-Time Threat Logs</div>
-                    <input type="text" class="search-input" placeholder="Search IP or Protocol...">
+                    <div class="panel-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Real-Time Threat Logs</div>
+                    <input type="text" class="search-input input" id="log-search" placeholder="Search IP, protocol or verdict..." aria-label="Filter threat logs">
                 </div>
 
                 <div class="table-wrapper">
@@ -474,8 +426,12 @@
                         </thead>
                         <tbody id="log-body">
                             <tr>
-                                <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">
-                                    No logs ingested yet. Use the Simulator above.
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        <div class="empty-state-title">No traffic analysed yet</div>
+                                        <div class="empty-state-hint">Use the simulation console above to generate classified flows.</div>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -702,6 +658,7 @@
                     </tr>
                 `;
             }).join('');
+            filterLogs();
         }
 
         async function simulateTraffic(type) {
@@ -782,6 +739,16 @@
                 mapContainer.style.borderRadius = 'var(--radius-md)';
             }
         });
+
+        // The filter box was previously decorative markup with no behaviour.
+        function filterLogs() {
+            const q = (document.getElementById('log-search')?.value || '').toLowerCase().trim();
+            document.querySelectorAll('#log-body tr').forEach(tr => {
+                if (tr.querySelector('.empty-state')) return;
+                tr.style.display = !q || tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+        document.getElementById('log-search')?.addEventListener('input', filterLogs);
 
         window.onload = () => {
             initMap();

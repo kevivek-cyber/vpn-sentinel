@@ -65,14 +65,12 @@
             width: 100%;
             margin-bottom: 32px;
         }
-
         .title {
-            font-size: 2.8rem;
-            font-weight: 700;
+            font-size: clamp(1.9rem, 1.4rem + 2.4vw, 2.7rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
             margin-bottom: 12px;
-            background: linear-gradient(to right, #ffffff, #9ca3af);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
 
         .subtitle {
@@ -363,12 +361,12 @@
 
     <main class="main-container" id="main">
 
-        <div class="search-section">
-            <h1 class="title">Instant IP Threat Intelligence</h1>
-            <p class="subtitle">Enter any IPv4 or IPv6 address to instantly check its location, ISP, and VPN/Proxy hosting status.</p>
+        <div class="search-section rise">
+            <h1 class="title">IP Threat <span style="color: var(--accent-primary);">Intelligence</span></h1>
+            <p class="subtitle">Check any IPv4 or IPv6 address for its location, network operator and VPN&thinsp;/&thinsp;proxy hosting reputation.</p>
 
             <div class="search-box-wrapper">
-                <input type="text" id="ip-input" class="search-input" placeholder="e.g. 89.187.163.19 or leave blank for your IP...">
+                <input type="text" id="ip-input" class="search-input" placeholder="e.g. 89.187.163.19 — or leave blank to use your own IP" aria-label="IP address to look up" autocomplete="off" spellcheck="false">
                 <button class="btn btn-primary" onclick="lookupIP()">Lookup IP</button>
             </div>
 
@@ -377,7 +375,7 @@
 
         <div class="spinner" id="loading-spinner"></div>
 
-        <div class="result-panel" id="result-panel">
+        <div class="result-panel rise" id="result-panel">
             <div class="result-header">
                 <div>
                     <div class="detail-label">Queried Address</div>
@@ -513,6 +511,11 @@
             }
         }
 
+
+        // Enter submits the lookup; previously the input was mouse-only.
+        document.getElementById('ip-input')?.addEventListener('keydown', e => {
+            if (e.key === 'Enter') { e.preventDefault(); lookupIP(); }
+        });
 
         window.onload = () => {
             detectMyIP();
