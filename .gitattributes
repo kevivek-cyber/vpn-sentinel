@@ -1,0 +1,9 @@
+# GitHub's language bar measures bytes, and ~89% of a rendered notebook's bytes
+# are base64-encoded chart images from its saved outputs. That skewed the repo to
+# "86% Jupyter Notebook" and buried the actual application code at 3% Python.
+# Marking notebooks as documentation excludes them from the language statistics
+# while keeping them fully rendered and browsable on GitHub.
+*.ipynb linguist-documentation
+
+# Reference papers, not source.
+project/documents/** linguist-documentation
