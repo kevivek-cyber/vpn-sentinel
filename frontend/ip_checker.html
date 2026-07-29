@@ -575,23 +575,14 @@
     </main>
 
     <footer>
-        VPN-Sentinel Geolocation and Proxy Detection Engine &copy; 2026. Made with Outfits.
+        VPN-Sentinel IP Geolocation and Proxy Detection Engine &copy; 2026.
     </footer>
 
     <script>
 
-        const datacenterKeywords = [
-            "digitalocean", "m247", "linode", "ovh", "hetzner", "colocrossing", "choopa",
-            "clouvider", "leaseweb", "private internet access", "nordvpn", "expressvpn",
-            "surfshark", "windscribe", "vpn", "proxy", "tor", "exit-node", "datacenter",
-            "hosting", "vps", "hostkey"
-        ];
-
-
-        const genericKeywords = [
-            "amazon", "aws", "microsoft", "google", "servers", "tunnel", "obfuscated",
-            "zenmate", "secure", "hide", "chocoping"
-        ];
+        const BACKEND_URL = (window.location.protocol === 'file:' || window.location.origin === 'null')
+            ? 'http://127.0.0.1:8000'
+            : window.location.origin;
 
         async function detectMyIP() {
             document.getElementById('ip-input').value = '';
@@ -601,7 +592,6 @@
         async function lookupIP(targetIp = null) {
             const inputVal = targetIp !== null ? targetIp : document.getElementById('ip-input').value.trim();
 
-
             const spinner = document.getElementById('loading-spinner');
             const resultPanel = document.getElementById('result-panel');
 
@@ -609,18 +599,28 @@
             resultPanel.style.display = 'none';
 
             try {
-
-                const url = `http://ip-api.com/json/${inputVal}?fields=status,message,country,countryCode,regionName,city,isp,org,as,query`;
+                // Routed through our own backend rather than calling ip-api.com
+                // directly: their free tier is HTTP-only, and a browser fetch from
+                // this HTTPS-served page to an http:// endpoint gets blocked as
+                // mixed content ("Failed to fetch") every time.
+                const url = `${BACKEND_URL}/api/lookup?ip=${encodeURIComponent(inputVal)}`;
                 const res = await fetch(url);
-                if (!res.ok) throw new Error("API Connection Failed");
-
-                const data = await res.json();
-                if (data.status === 'fail') {
-                    alert(`Lookup Failed: ${data.message}`);
+                if (!res.ok) {
+                    if (res.status === 429) {
+                        alert('Too many lookups in a short time. Please wait a minute and try again.');
+                    } else {
+                        throw new Error(`Backend returned ${res.status}`);
+                    }
                     spinner.style.display = 'none';
                     return;
                 }
 
+                const data = await res.json();
+                if (data.status === 'fail') {
+                    alert(`Lookup Failed: could not resolve that address.`);
+                    spinner.style.display = 'none';
+                    return;
+                }
 
                 document.getElementById('res-ip').innerText = data.query;
                 document.getElementById('res-isp').innerText = data.isp || "Unknown";
@@ -628,31 +628,8 @@
                 document.getElementById('res-as').innerText = data.as || "Unknown";
                 document.getElementById('res-location').innerText = `${data.city || 'Unknown'}, ${data.regionName || ''} (${data.country || ''})`;
 
-
-                let riskScore = 0;
-                const testText = `${data.isp} ${data.org} ${data.as}`.toLowerCase();
-
-
-                let hasHighConfidenceMatch = false;
-                datacenterKeywords.forEach(kw => {
-                    if (testText.includes(kw)) {
-                        hasHighConfidenceMatch = true;
-                    }
-                });
-
-                if (hasHighConfidenceMatch) {
-                    riskScore = 100;
-                } else {
-
-                    genericKeywords.forEach(kw => {
-                        if (testText.includes(kw)) {
-                            riskScore += 25;
-                        }
-                    });
-                }
-
-                riskScore = Math.min(100, riskScore);
-                const isVpn = riskScore >= 50;
+                const isVpn = !!data.is_vpn;
+                const riskScore = isVpn ? (data.is_tor || data.is_proxy ? 100 : 90) : 5;
 
                 const verdictBadge = document.getElementById('res-verdict');
                 const gaugeInner = document.getElementById('res-gauge');
@@ -670,7 +647,6 @@
                     gaugeInner.style.backgroundColor = "var(--accent-safe)";
                     document.getElementById('res-score').style.color = "var(--accent-safe)";
                 }
-
 
                 setTimeout(() => {
                     gaugeInner.style.width = `${riskScore}%`;

@@ -92,6 +92,8 @@ def get_ip_info(ip: str):
             "status": "success",
             "countryCode": "US",
             "country": "United States",
+            "city": "N/A (Private IP)",
+            "regionName": "",
             "timezone": "America/New_York",
             "lat": 40.7128,
             "lon": -74.0060,
@@ -115,6 +117,8 @@ def get_ip_info(ip: str):
                     "status": "success",
                     "countryCode": loc.get("country_code"),
                     "country": loc.get("country"),
+                    "city": loc.get("city"),
+                    "regionName": loc.get("state"),
                     "timezone": loc.get("timezone"),
                     "lat": loc.get("latitude"),
                     "lon": loc.get("longitude"),
@@ -129,7 +133,7 @@ def get_ip_info(ip: str):
     except Exception as e:
         print(f"Error calling ipapi.is: {e}")
     try:
-        url = f"http://ip-api.com/json/{ip}?fields=status,message,country,countryCode,timezone,lat,lon,isp,org,as,query"
+        url = f"http://ip-api.com/json/{ip}?fields=status,message,country,countryCode,regionName,city,timezone,lat,lon,isp,org,as,query"
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=5) as response:
             data = json.loads(response.read().decode())
@@ -145,6 +149,8 @@ def get_ip_info(ip: str):
         "status": "fail",
         "countryCode": "US",
         "country": "United States",
+        "city": "Unknown",
+        "regionName": "",
         "timezone": "America/New_York",
         "lat": 40.7128,
         "lon": -74.0060,
@@ -156,6 +162,20 @@ def get_ip_info(ip: str):
         "is_tor": False,
         "is_proxy": False
     }
+def assess_ip_reputation(ip: str):
+    """Looks up an IP and combines the upstream is_vpn/is_datacenter/is_tor/is_proxy
+    flags with our own ISP/org/ASN keyword matching, since the ip-api.com fallback
+    path never sets those flags itself."""
+    http_info = get_ip_info(ip)
+    is_datacenter_ip = 1 if http_info.get("is_datacenter") else 0
+    is_known_vpn_ip = 1 if (http_info.get("is_vpn") or http_info.get("is_tor") or http_info.get("is_proxy")) else 0
+    rep_text = f"{http_info.get('isp', '')} {http_info.get('org', '')} {http_info.get('as', '')}".lower()
+    for kw in DATACENTER_KEYWORDS:
+        if kw in rep_text:
+            is_datacenter_ip = 1
+            if any(vkw in rep_text for vkw in ["vpn", "proxy", "tor", "exit-node", "nordvpn", "expressvpn", "surfshark", "private internet access", "windscribe"]):
+                is_known_vpn_ip = 1
+    return http_info, is_datacenter_ip, is_known_vpn_ip
 
 @app.on_event("startup")
 def warm_up_ip_lookup():
@@ -252,15 +272,7 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
             if request.headers.get(header_name):
                 proxy_header_detected = 1
                 break
-    http_info = get_ip_info(client_ip)
-    is_datacenter_ip = 1 if http_info.get("is_datacenter") else 0
-    is_known_vpn_ip = 1 if (http_info.get("is_vpn") or http_info.get("is_tor") or http_info.get("is_proxy")) else 0
-    rep_text = f"{http_info.get('isp', '')} {http_info.get('org', '')} {http_info.get('as', '')}".lower()
-    for kw in DATACENTER_KEYWORDS:
-        if kw in rep_text:
-            is_datacenter_ip = 1
-            if any(vkw in rep_text for vkw in ["vpn", "proxy", "tor", "exit-node", "nordvpn", "expressvpn", "surfshark", "private internet access", "windscribe"]):
-                is_known_vpn_ip = 1
+    http_info, is_datacenter_ip, is_known_vpn_ip = assess_ip_reputation(client_ip)
     webrtc_blocked = 1 if (not flow.webrtc_ip or is_private_ip(flow.webrtc_ip)) else 0
     webrtc_ip_mismatch = 0
     if not webrtc_blocked:
@@ -414,6 +426,44 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         explanation=explanation_str,
         is_tle=is_tle
     )
+@app.get("/api/lookup")
+def lookup_ip(request: Request, ip: Optional[str] = Query(None)):
+    # ip-api.com's free tier is HTTP-only; calling it directly from the browser
+    # on an HTTPS-served page gets blocked as mixed content ("Failed to fetch").
+    # Routing through the backend avoids that entirely since server-to-server
+    # HTTP calls aren't subject to the browser's mixed-content policy.
+    rate_limit_key = request.client.host if request.client else "unknown"
+    enforce_rate_limit(rate_limit_key)
+
+    target_ip = (ip or "").strip()
+    if not target_ip:
+        x_forwarded_for = request.headers.get("x-forwarded-for")
+        if x_forwarded_for:
+            target_ip = x_forwarded_for.split(",")[0].strip()
+        else:
+            target_ip = request.client.host if request.client else ""
+
+    if not target_ip:
+        raise HTTPException(status_code=400, detail="Could not determine an IP address to look up.")
+
+    http_info, is_datacenter_ip, is_known_vpn_ip = assess_ip_reputation(target_ip)
+    is_vpn = bool(is_datacenter_ip or is_known_vpn_ip or http_info.get("is_tor") or http_info.get("is_proxy"))
+
+    return {
+        "status": http_info.get("status", "fail"),
+        "query": target_ip,
+        "country": http_info.get("country"),
+        "countryCode": http_info.get("countryCode"),
+        "regionName": http_info.get("regionName"),
+        "city": http_info.get("city"),
+        "isp": http_info.get("isp"),
+        "org": http_info.get("org"),
+        "as": http_info.get("as"),
+        "is_vpn": is_vpn,
+        "is_datacenter": bool(is_datacenter_ip),
+        "is_tor": bool(http_info.get("is_tor")),
+        "is_proxy": bool(http_info.get("is_proxy"))
+    }
 @app.get("/api/stats")
 def get_stats(db: Session = Depends(get_db), tenant_id: str = Depends(get_tenant_id)):
     logs = db.query(FlowInferenceLog).filter(FlowInferenceLog.tenant_id == tenant_id).all()
