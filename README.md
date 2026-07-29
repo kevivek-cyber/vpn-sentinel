@@ -1,10 +1,31 @@
 # 🛡️ VPN Sentinel
 
-**VPN Sentinel** is an advanced, machine-learning-powered network security system designed to detect, classify, and explain VPN and proxy usage in real-time. Whether analyzing low-level network packets or high-level browser contexts, VPN Sentinel exposes hidden traffic using a multi-stage AI pipeline.
+**Detects VPN and proxy usage in real time — from raw network traffic or straight from a browser — and explains *why* it flagged something, not just that it did.**
 
-![VPN Sentinel Banner](https://img.shields.io/badge/Security-VPN_Sentinel-9d4edd?style=for-the-badge&logo=shield)
-![Python](https://img.shields.io/badge/Python-3.11+-blue?style=for-the-badge&logo=python)
-![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?style=for-the-badge&logo=fastapi)
+![Security](https://img.shields.io/badge/Security-VPN_Sentinel-4f7cff?style=for-the-badge&logo=shield)
+![Python](https://img.shields.io/badge/Python-3.11+-4f7cff?style=for-the-badge&logo=python)
+![FastAPI](https://img.shields.io/badge/FastAPI-Backend-2dd4a7?style=for-the-badge&logo=fastapi)
+
+**🌐 Live demo:** [vpncheck.in](https://vpncheck.in) &nbsp;•&nbsp; **📓 Full walkthrough notebook:** [`VPN_Sentinel_Main.ipynb`](VPN_Sentinel_Main.ipynb)
+
+---
+
+## 🧭 What is this?
+
+Most VPN detectors just check an IP against a blocklist — easy for any half-decent VPN to evade. VPN Sentinel combines that with *behavioral* signals that are much harder to fake: how packets are timed, whether a browser's WebRTC leaks its real IP, whether the GPU looks like a cloud VM instead of a real laptop, whether the browser is being driven by automation. It's a two-stage ML pipeline:
+
+- **Stage 1** — is this traffic VPN or clean? (Random Forest, trained on real packet captures + synthetic data, resistant to adversarial evasion)
+- **Stage 2** — if it's a VPN, which protocol? (OpenVPN, WireGuard, or IKEv2)
+- **Explainability** — every prediction ships with a SHAP breakdown of exactly which feature drove the decision, in plain language
+
+There are two parallel models depending on what data is available: a **Flow Model** for raw network packet statistics, and a **Browser Model** for client-side telemetry when you only have a web request to work with.
+
+### Why this is more than "prompted an LLM to build an app"
+
+The interesting part isn't the feature list — it's the bugs that surfaced from actually stress-testing the pipeline end-to-end, not just eyeballing a demo:
+- The model claimed adversarial robustness in its docs, but Stage 1 had never actually been trained on adversarial examples — only Stage 2 had. Fixed and verified (adversarial accuracy went from a real ~40-57% collapse to 98%).
+- Stage 1 and Stage 2 were trained on two datasets with incompatible feature scales, so they silently disagreed about what "VPN" looks like — every demo button on the dashboard was misclassified as a result. Fixed by aligning both training sets.
+- A cold-start network timeout was silently misclassifying the first request after every server restart, because a slow DNS lookup was falling back to a "clean" default under time pressure.
 
 ---
 
@@ -41,7 +62,7 @@ graph TD
     %% Core Inputs
     Client([Client Traffic]) --> Sniffer[live_monitor.py / Browser]
     Sniffer --> |16 Flow Features| API[FastAPI Ingestion]
-    Sniffer --> |14 Context Features| API
+    Sniffer --> |17 Context Features| API
     
     %% Processing
     API --> |Feature Validation| Imputer{Missing Data Imputation}
@@ -67,10 +88,10 @@ graph TD
     DB --> Dashboard[[Interactive SOC Dashboard]]
     
     %% Styling
-    classDef api fill:#009688,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef model fill:#9d4edd,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef db fill:#ff2a5f,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef dash fill:#00f0ff,stroke:#fff,stroke-width:2px,color:#000;
+    classDef api fill:#2dd4a7,stroke:#fff,stroke-width:2px,color:#000;
+    classDef model fill:#4f7cff,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef db fill:#ef4a5a,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef dash fill:#f0a83c,stroke:#fff,stroke-width:2px,color:#000;
     
     class API api;
     class Stage1,Stage2,SHAP model;

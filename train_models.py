@@ -40,9 +40,9 @@ for col in [
 ]:
     test_adv_df[col] = -1.0
 if os.path.exists('vpn_sentinel_training_data.csv'):
-    print("Loading Claude-generated browser dataset from 'vpn_sentinel_training_data.csv'...")
-    claude_df = pd.read_csv('vpn_sentinel_training_data.csv')
-    train_br_df, test_br_df = tts(claude_df, test_size=0.2, random_state=42, stratify=claude_df['is_vpn'])
+    print("Loading browser telemetry dataset from 'vpn_sentinel_training_data.csv'...")
+    browser_synth_df = pd.read_csv('vpn_sentinel_training_data.csv')
+    train_br_df, test_br_df = tts(browser_synth_df, test_size=0.2, random_state=42, stratify=browser_synth_df['is_vpn'])
 else:
     train_br_df = pd.read_csv('data/train_browser_flows.csv')
     test_br_df = pd.read_csv('data/test_browser_flows.csv')
