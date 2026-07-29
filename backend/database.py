@@ -1,5 +1,5 @@
 import datetime
-from sqlalchemy import create_engine, Column, Integer, Float, String, Boolean, DateTime
+from sqlalchemy import create_engine, Column, Integer, Float, String, Boolean, DateTime, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 DATABASE_URL = "sqlite:///./vpn_sentinel.db"
@@ -31,8 +31,17 @@ class FlowInferenceLog(Base):
     is_datacenter_ip = Column(Integer, nullable=True)
     is_known_vpn_ip = Column(Integer, nullable=True)
     proxy_header_detected = Column(Integer, nullable=True)
+    is_virtual_gpu = Column(Integer, nullable=True)
 def init_db():
     Base.metadata.create_all(bind=engine)
+    # Lightweight migration for columns added after the table already existed
+    # (this is a demo SQLite DB with no migration framework).
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE flow_inference_logs ADD COLUMN is_virtual_gpu INTEGER"))
+            conn.commit()
+        except Exception:
+            pass
 def get_db():
     db = SessionLocal()
     try:

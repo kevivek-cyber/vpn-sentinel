@@ -165,6 +165,7 @@ class FlowInput(BaseModel):
     latitude: Optional[float] = Field(default=None, description="Client latitude")
     longitude: Optional[float] = Field(default=None, description="Client longitude")
     has_geo_permission: bool = Field(default=False, description="Whether GPS permission was granted")
+    is_virtual_gpu: bool = Field(default=False, description="Whether WebGL reports a software/virtual renderer (datacenter VM signal)")
 def is_timezone_mismatch(tz_client: Optional[str], tz_ip: Optional[str]) -> int:
     if not tz_client or not tz_ip:
         return 0
@@ -286,6 +287,7 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
     flow_dict['is_datacenter_ip'] = is_datacenter_ip
     flow_dict['is_known_vpn_ip'] = is_known_vpn_ip
     flow_dict['proxy_header_detected'] = proxy_header_detected
+    flow_dict['is_virtual_gpu'] = 1 if flow.is_virtual_gpu else 0
     if flow.is_browser:
         active_features = timing_features
         active_model_s1 = model_br_s1
@@ -360,7 +362,8 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         has_geo_permission=1 if flow.has_geo_permission else 0,
         is_datacenter_ip=is_datacenter_ip,
         is_known_vpn_ip=is_known_vpn_ip,
-        proxy_header_detected=proxy_header_detected
+        proxy_header_detected=proxy_header_detected,
+        is_virtual_gpu=1 if flow.is_virtual_gpu else 0
     )
     db.add(log_entry)
     db.commit()

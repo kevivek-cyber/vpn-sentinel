@@ -956,6 +956,39 @@
             flex-shrink: 0;
         }
 
+        .env-signals {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .env-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .env-badge.flag {
+            background: rgba(240, 168, 60, 0.1);
+            border-color: rgba(240, 168, 60, 0.25);
+            color: #f0a83c;
+        }
+
+        .env-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
         footer {
             display: none !important;
             padding: 24px;
@@ -1678,6 +1711,7 @@
                         </div>
                     </div>
                 </div>
+                <div id="env-signals" class="env-signals"></div>
                 <div class="footer-note">
                     <div class="info-icon">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1926,6 +1960,84 @@
             });
         }
 
+        function getGPUFingerprint() {
+            // Datacenter/VPS exit nodes almost always run without a real GPU,
+            // so WebGL falls back to a software renderer (SwiftShader, llvmpipe,
+            // Mesa, etc). A residential desktop/laptop reports a real GPU.
+            const virtualPatterns = [
+                'swiftshader', 'llvmpipe', 'software', 'basic render',
+                'vmware', 'virtualbox', 'parallels', 'mesa', 'microsoft basic'
+            ];
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) return { is_virtual_gpu: true, renderer: 'unavailable' };
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                const renderer = debugInfo
+                    ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+                    : gl.getParameter(gl.RENDERER);
+                const rendererStr = String(renderer || '').toLowerCase();
+                const isVirtual = virtualPatterns.some(p => rendererStr.includes(p));
+                return { is_virtual_gpu: isVirtual, renderer: renderer || 'unknown' };
+            } catch (e) {
+                return { is_virtual_gpu: false, renderer: 'error' };
+            }
+        }
+
+        function isBraveBrowser() {
+            return !!(navigator.brave && typeof navigator.brave.isBrave === 'function');
+        }
+
+        function probeDnsAdBlock() {
+            // Extension-based blockers fail with net::ERR_BLOCKED_BY_CLIENT before
+            // any network activity; DNS-level blockers (Pi-hole/NextDNS/AdGuard DNS)
+            // let the request through to the fetch layer but the resolution itself
+            // fails, surfacing as a generic TypeError with no response ever created.
+            // We can't read the exact Chromium error code from JS, so this is a
+            // best-effort heuristic based on timing: a DNS failure to a real host
+            // typically takes noticeably longer to reject than an instant
+            // extension-level block.
+            const probeUrl = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js';
+            const start = performance.now();
+            return fetch(probeUrl, { mode: 'no-cors', cache: 'no-store' })
+                .then(() => ({ blocked: false, method: null }))
+                .catch(() => {
+                    const elapsed = performance.now() - start;
+                    return { blocked: true, method: elapsed > 150 ? 'dns' : 'extension' };
+                });
+        }
+
+        function renderEnvSignals(gpuInfo, isBrave, dnsAdBlockInfo) {
+            const container = document.getElementById('env-signals');
+            if (!container) return;
+            const badges = [];
+
+            badges.push(
+                gpuInfo.is_virtual_gpu
+                    ? { flag: true, label: 'Virtual/software GPU detected' }
+                    : { flag: false, label: 'Real GPU detected' }
+            );
+
+            if (isBrave) {
+                badges.push({ flag: false, label: 'Brave browser' });
+            }
+
+            if (dnsAdBlockInfo && dnsAdBlockInfo.blocked) {
+                badges.push({
+                    flag: true,
+                    label: dnsAdBlockInfo.method === 'dns' ? 'DNS-level ad-block detected' : 'Ad-block extension detected'
+                });
+            } else {
+                badges.push({ flag: false, label: 'No ad-blocking detected' });
+            }
+
+            container.innerHTML = badges.map(b => `
+                <span class="env-badge${b.flag ? ' flag' : ''}">
+                    <span class="dot"></span>${b.label}
+                </span>
+            `).join('');
+        }
+
         async function startAnalysis() {
             const startBtn = document.getElementById('start-btn');
             const introPanel = document.querySelector('.intro-panel');
@@ -1947,6 +2059,9 @@
             await wait(500);
 
             const webrtcPromise = getWebRTCIP();
+            const dnsAdBlockPromise = probeDnsAdBlock();
+            const gpuInfo = getGPUFingerprint();
+            const isBrave = isBraveBrowser();
             let clientIp = null;
             try {
                 const ipRes = await fetch('https://api.ipify.org?format=json');
@@ -1959,6 +2074,7 @@
             }
 
             const webrtcIp = await webrtcPromise;
+            const dnsAdBlockInfo = await dnsAdBlockPromise;
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             const language = navigator.language || (navigator.languages && navigator.languages[0]) || null;
             const languages = navigator.languages ? Array.from(navigator.languages) : [];
@@ -2032,7 +2148,8 @@
                 webrtc_ip: webrtcIp,
                 timezone: timezone,
                 language: language,
-                languages: languages
+                languages: languages,
+                is_virtual_gpu: gpuInfo.is_virtual_gpu
             };
 
             let data;
@@ -2079,6 +2196,8 @@
 
             document.getElementById('explain-text').innerText = data.explanation || 'No model explanation available.';
             updateGauge((data.confidence || 0.82) * 100);
+
+            renderEnvSignals(gpuInfo, isBrave, dnsAdBlockInfo);
 
             const positiveScale = data.is_vpn ? 1.0 : 0.4;
             document.getElementById('bar-dc').style.width = `${Math.round(62 * positiveScale)}%`;
