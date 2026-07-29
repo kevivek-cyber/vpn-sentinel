@@ -2092,7 +2092,10 @@
                 verdictProtocol.innerText = data.vpn_protocol || 'IKEv2';
                 verdictPanel.className = 'verdict-card vpn-alert';
                 document.getElementById('f-proto').innerText = data.vpn_protocol || 'IKEv2';
-                document.getElementById('f-proto-sub').innerText = data.is_tle ? 'Time Limit Exceeded' : 'VPN Protocol';
+                const pc = data.protocol_confidence;
+                document.getElementById('f-proto-sub').innerText = data.is_tle
+                    ? 'Time Limit Exceeded'
+                    : (pc != null ? `VPN Protocol · ${(pc * 100).toFixed(0)}% confidence` : 'VPN Protocol');
             } else {
                 verdictText.innerText = 'RESIDENTIAL SECURE';
                 verdictProtocol.innerText = 'None';

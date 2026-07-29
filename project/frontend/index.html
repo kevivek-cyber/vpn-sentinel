@@ -420,7 +420,7 @@
                                 <th>Source IP / Threat Score</th>
                                 <th>Flow Profile</th>
                                 <th>AI Prediction</th>
-                                <th>Confidence</th>
+                                <th>Detection&nbsp;Confidence</th>
                                 <th>SHAP Justification</th>
                             </tr>
                         </thead>
@@ -651,7 +651,10 @@
                             Len: ${log.fwd_pkt_len_mean.toFixed(0)} Fwd / ${log.bwd_pkt_len_mean.toFixed(0)} Bwd
                         </td>
                         <td data-label="AI Prediction">${predBadge}</td>
-                        <td data-label="Confidence" style="font-weight: 700;">${(log.confidence * 100).toFixed(1)}%</td>
+                        <td data-label="Confidence" style="font-weight: 700;">
+                            ${(log.confidence * 100).toFixed(1)}%
+                            ${log.protocol_confidence != null ? `<div style="font-weight:500; font-size:0.72rem; color:var(--text-muted); margin-top:3px;">protocol ${(log.protocol_confidence * 100).toFixed(0)}%</div>` : ''}
+                        </td>
                         <td data-label="SHAP Justification">
                             <div class="explain-box">${log.explanation}</div>
                         </td>

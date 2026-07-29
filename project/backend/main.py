@@ -281,7 +281,13 @@ def get_tenant_id(tenant: Optional[str] = Query(None), x_tenant_id: Optional[str
 class IngestResponse(BaseModel):
     is_vpn: bool
     vpn_protocol: Optional[str]
+    # Confidence in the VPN-vs-clean verdict (Stage 1). Previously this field was
+    # overwritten with Stage 2's protocol confidence whenever a VPN was detected,
+    # so a 97%-confident detection was reported as ~49% -- Stage 2 spreads its
+    # probability across three protocols and, from browser telemetry alone, tops
+    # out near 71% accuracy. Two different questions, so two separate numbers.
     confidence: float
+    protocol_confidence: Optional[float] = None
     explanation: str
     is_tle: bool = False
 @app.post("/api/ingest", response_model=IngestResponse)
@@ -383,6 +389,7 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
     is_vpn_pred = bool(active_model_s1.predict(input_df_imputed)[0])
     confidence = float(prob_s1[1] if is_vpn_pred else prob_s1[0])
     vpn_proto = None
+    protocol_confidence = None
     explanation_str = ""
     shap_vals_s1 = active_explainer_s1.shap_values(input_df_imputed)
     if isinstance(shap_vals_s1, list):
@@ -404,7 +411,7 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         proto_idx = int(active_model_s2.predict(input_df_imputed)[0])
         protocols_map = {0: "OpenVPN", 1: "WireGuard", 2: "IKEv2"}
         vpn_proto = protocols_map.get(proto_idx, "Unknown")
-        confidence = float(prob_s2[proto_idx])
+        protocol_confidence = float(prob_s2[proto_idx])
         shap_vals_s2 = active_explainer_s2.shap_values(input_df_imputed)
         if isinstance(shap_vals_s2, list):
             vals_s2 = shap_vals_s2[proto_idx][0]
@@ -433,6 +440,7 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         is_vpn=is_vpn_pred,
         vpn_protocol=vpn_proto,
         confidence=confidence,
+        protocol_confidence=protocol_confidence,
         explanation=explanation_str,
         webrtc_ip_mismatch=webrtc_ip_mismatch,
         webrtc_blocked=webrtc_blocked,
@@ -455,6 +463,7 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         is_vpn=is_vpn_pred,
         vpn_protocol=vpn_proto,
         confidence=confidence,
+        protocol_confidence=protocol_confidence,
         explanation=explanation_str,
         is_tle=is_tle
     )
@@ -538,6 +547,7 @@ def get_history(db: Session = Depends(get_db), tenant_id: str = Depends(get_tena
             "is_vpn": log.is_vpn,
             "vpn_protocol": log.vpn_protocol,
             "confidence": round(log.confidence, 4),
+            "protocol_confidence": round(log.protocol_confidence, 4) if log.protocol_confidence is not None else None,
             "explanation": log.explanation,
             "is_tle": bool(log.is_tle)
         } for log in logs

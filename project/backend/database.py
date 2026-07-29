@@ -21,6 +21,7 @@ class FlowInferenceLog(Base):
     is_vpn = Column(Boolean)
     vpn_protocol = Column(String, nullable=True)
     confidence = Column(Float)
+    protocol_confidence = Column(Float, nullable=True)
     explanation = Column(String)
     webrtc_ip_mismatch = Column(Integer, nullable=True)
     webrtc_blocked = Column(Integer, nullable=True)
@@ -45,6 +46,7 @@ def init_db():
             ("is_automation_flagged", "INTEGER"),
             ("low_font_count", "INTEGER"),
             ("is_tle", "INTEGER"),
+            ("protocol_confidence", "FLOAT"),
         ]:
             try:
                 conn.execute(text(f"ALTER TABLE flow_inference_logs ADD COLUMN {col} {coltype}"))
