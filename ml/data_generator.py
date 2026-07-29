@@ -88,14 +88,24 @@ def generate_browser_flows(num_samples=5000):
         is_vpn = np.random.choice([0, 1], p=[0.5, 0.5])
         protocol = -1
         if is_vpn == 0:
-            flow_iat_mean = np.random.uniform(0.005, 0.150)
-            jitter_ratio = np.random.uniform(0.05, 1.45)
+            # Browser-measured timing is dominated by network noise, CPU scheduling
+            # and CDN variance, so a normal residential/mobile connection routinely
+            # produces high jitter. These ranges deliberately overlap the VPN ranges
+            # below: timing alone is NOT reliably separable from a browser, and
+            # narrow non-overlapping ranges here teach the model a false rule
+            # ("jitter > 1.45 => VPN") that fires constantly on real users.
+            flow_iat_mean = np.random.uniform(0.005, 0.320)
+            jitter_ratio = np.random.uniform(0.05, 2.60)
             flow_iat_std = flow_iat_mean * jitter_ratio
-            duration = np.random.normal(loc=2.0, scale=0.5)
+            duration = np.random.normal(loc=2.4, scale=0.9)
             webrtc_blocked = np.random.choice([0, 1], p=[0.95, 0.05])
             webrtc_ip_mismatch = 0
-            timezone_mismatch_score = 0
-            language_mismatch_score = 0
+            # Legitimate users do sometimes trip these: travellers with an
+            # unchanged device clock, expats and multilingual households, corporate
+            # split-tunnels. Never showing them on clean traffic would make a
+            # single mismatch look like conclusive proof of a VPN.
+            timezone_mismatch_score = np.random.choice([0, 1], p=[0.93, 0.07])
+            language_mismatch_score = np.random.choice([0, 1], p=[0.88, 0.12])
             has_geo_permission = np.random.choice([0, 1], p=[0.60, 0.40])
             if has_geo_permission == 1:
                 geo_ip_distance_km = max(0.0, np.random.normal(loc=15.0, scale=10.0))
@@ -130,8 +140,23 @@ def generate_browser_flows(num_samples=5000):
                 geo_ip_distance_km = max(50.0, np.random.normal(loc=1500.0, scale=800.0))
             else:
                 geo_ip_distance_km = np.nan
-            is_datacenter_ip = np.random.choice([0, 1], p=[0.15, 0.85])
-            is_known_vpn_ip = np.random.choice([0, 1], p=[0.25, 0.75])
+            # A meaningful share of real VPNs are simply not in any reputation
+            # database yet (fresh exit nodes, self-hosted tunnels, residential
+            # proxies). If nearly every VPN sample carries an IP-reputation flag,
+            # the model learns to look at nothing else and misses those entirely.
+            # Force ~30% of VPN traffic to be reputation-clean, detectable only
+            # via browser-side evidence.
+            if np.random.rand() < 0.30:
+                is_datacenter_ip = 0
+                is_known_vpn_ip = 0
+                # These are the signals that have to carry the decision instead.
+                webrtc_blocked = np.random.choice([0, 1], p=[0.70, 0.30])
+                webrtc_ip_mismatch = 0 if webrtc_blocked else np.random.choice([0, 1], p=[0.15, 0.85])
+                timezone_mismatch_score = np.random.choice([0, 1], p=[0.10, 0.90])
+                language_mismatch_score = np.random.choice([0, 1], p=[0.20, 0.80])
+            else:
+                is_datacenter_ip = np.random.choice([0, 1], p=[0.15, 0.85])
+                is_known_vpn_ip = np.random.choice([0, 1], p=[0.25, 0.75])
             proxy_header_detected = np.random.choice([0, 1], p=[0.80, 0.20])
             is_virtual_gpu = np.random.choice([0, 1], p=[0.80, 0.20])
             is_automation_flagged = np.random.choice([0, 1], p=[0.85, 0.15])

@@ -1,4 +1,5 @@
 import os
+import re
 import time
 from collections import defaultdict, deque
 import joblib
@@ -48,10 +49,25 @@ DATACENTER_KEYWORDS = [
     "digitalocean", "m247", "linode", "ovh", "hetzner", "colocrossing", "choopa",
     "clouvider", "leaseweb", "private internet access", "nordvpn", "expressvpn",
     "surfshark", "windscribe", "vpn", "proxy", "tor", "exit-node", "datacenter",
-    "hosting", "vps", "hostkey", "aws", "azure", "google cloud", "google-cloud", 
+    "hosting", "vps", "hostkey", "aws", "azure", "google cloud", "google-cloud",
     "amazon web services", "microsoft corporation", "ovh SAS", "scaleway", "vultr",
     "obfuscated", "hide my ass", "hidemyass"
 ]
+# Only these indicate an actual anonymising service. The broader datacenter list
+# above just means "hosted infrastructure", which is not the same thing.
+VPN_KEYWORDS = [
+    "vpn", "proxy", "tor", "exit-node", "nordvpn", "expressvpn", "surfshark",
+    "private internet access", "windscribe", "hide my ass", "hidemyass",
+]
+# Short keywords like "tor"/"vps"/"aws" appear inside ordinary words -- "tor" alone
+# matches "opera(tor)", "distribu(tor)", "vic(tor)ia" -- which flagged plenty of
+# legitimate residential ISPs. Match those on word boundaries; longer keywords are
+# distinctive enough for plain substring matching.
+def _keyword_matches(keyword: str, text: str) -> bool:
+    kw = keyword.lower()
+    if len(kw) <= 4:
+        return re.search(rf"\b{re.escape(kw)}\b", text) is not None
+    return kw in text
 # Connections classified as VPN that run longer than this are flagged as a
 # Time Limit Exceeded (TLE) policy violation -- e.g. a tunnel that's stayed
 # open well past what's expected for the traffic pattern being analyzed.
@@ -170,11 +186,10 @@ def assess_ip_reputation(ip: str):
     is_datacenter_ip = 1 if http_info.get("is_datacenter") else 0
     is_known_vpn_ip = 1 if (http_info.get("is_vpn") or http_info.get("is_tor") or http_info.get("is_proxy")) else 0
     rep_text = f"{http_info.get('isp', '')} {http_info.get('org', '')} {http_info.get('as', '')}".lower()
-    for kw in DATACENTER_KEYWORDS:
-        if kw in rep_text:
-            is_datacenter_ip = 1
-            if any(vkw in rep_text for vkw in ["vpn", "proxy", "tor", "exit-node", "nordvpn", "expressvpn", "surfshark", "private internet access", "windscribe"]):
-                is_known_vpn_ip = 1
+    if any(_keyword_matches(kw, rep_text) for kw in DATACENTER_KEYWORDS):
+        is_datacenter_ip = 1
+    if any(_keyword_matches(kw, rep_text) for kw in VPN_KEYWORDS):
+        is_known_vpn_ip = 1
     return http_info, is_datacenter_ip, is_known_vpn_ip
 
 @app.on_event("startup")
