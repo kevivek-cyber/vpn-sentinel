@@ -99,7 +99,12 @@ def generate_browser_flows(num_samples=5000):
             flow_iat_std = flow_iat_mean * jitter_ratio
             duration = np.random.normal(loc=2.4, scale=0.9)
             webrtc_blocked = np.random.choice([0, 1], p=[0.95, 0.05])
-            webrtc_ip_mismatch = 0
+            # Clean connections do produce WebRTC ASN/country mismatches: dual-stack
+            # clients, CGNAT on mobile carriers, and multi-homed ISPs all route the
+            # STUN path differently from the HTTP path. Modelling this as strictly 0
+            # for clean traffic taught the model that one mismatch proves a tunnel
+            # (P(VPN)=0.93 on its own), which fired on ordinary visitors.
+            webrtc_ip_mismatch = 0 if webrtc_blocked else np.random.choice([0, 1], p=[0.91, 0.09])
             # Legitimate users do sometimes trip these: travellers with an
             # unchanged device clock, expats and multilingual households, corporate
             # split-tunnels. Never showing them on clean traffic would make a
@@ -113,7 +118,9 @@ def generate_browser_flows(num_samples=5000):
                 geo_ip_distance_km = np.nan
             is_datacenter_ip = 0
             is_known_vpn_ip = 0
-            proxy_header_detected = 0
+            # Corporate egress proxies, school/ISP transparent caches and CDN
+            # front-ends all add forwarding headers to perfectly ordinary traffic.
+            proxy_header_detected = np.random.choice([0, 1], p=[0.90, 0.10])
             is_virtual_gpu = np.random.choice([0, 1], p=[0.97, 0.03])
             is_automation_flagged = np.random.choice([0, 1], p=[0.98, 0.02])
             low_font_count = np.random.choice([0, 1], p=[0.95, 0.05])

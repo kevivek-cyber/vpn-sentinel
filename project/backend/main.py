@@ -92,6 +92,24 @@ def enforce_rate_limit(client_key: str):
         )
     bucket.append(now)
 
+# Every managed host (Render, Fly, Heroku, Cloudflare, any nginx/ALB) sets
+# x-forwarded-for on inbound requests -- that is how the app learns the real
+# client IP. Treating the mere presence of that header as "the client is behind
+# a proxy" therefore flagged *every* visitor to the deployed site as a VPN.
+# Only hops beyond our own edge count as client-side evidence.
+TRUSTED_PROXY_HOPS = int(os.environ.get("TRUSTED_PROXY_HOPS", "1"))
+
+def detect_client_side_proxy(request: Request) -> int:
+    # "via" is set by real forward proxies declaring themselves; platform load
+    # balancers do not normally add it.
+    if request.headers.get("via"):
+        return 1
+    xff = request.headers.get("x-forwarded-for", "")
+    if not xff:
+        return 0
+    hops = [h.strip() for h in xff.split(",") if h.strip()]
+    return 1 if len(hops) > TRUSTED_PROXY_HOPS else 0
+
 def is_private_ip(ip: Optional[str]) -> bool:
     if not ip:
         return True
@@ -279,14 +297,7 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
             client_ip = x_forwarded_for.split(",")[0].strip()
         else:
             client_ip = request.client.host if request.client else "127.0.0.1"
-    proxy_header_detected = 0
-    host_header = request.headers.get("host", "").lower()
-    is_dev_tunnel = any(dom in host_header for dom in ["lhr.life", "localhost.run", "pinggy", "ngrok", "localtunnel"])
-    if not is_dev_tunnel:
-        for header_name in ["via", "forwarded", "x-forwarded-for", "x-real-ip"]:
-            if request.headers.get(header_name):
-                proxy_header_detected = 1
-                break
+    proxy_header_detected = detect_client_side_proxy(request)
     http_info, is_datacenter_ip, is_known_vpn_ip = assess_ip_reputation(client_ip)
     webrtc_blocked = 1 if (not flow.webrtc_ip or is_private_ip(flow.webrtc_ip)) else 0
     webrtc_ip_mismatch = 0
@@ -295,16 +306,22 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
         if not webrtc_info.get("countryCode"):
             webrtc_blocked = 1
     if not webrtc_blocked:
-        as_http = http_info.get("as", "").split()[0] if http_info.get("as") else ""
-        as_webrtc = webrtc_info.get("as", "").split()[0] if webrtc_info.get("as") else ""
-        print(f"[DEBUG] client_ip: {client_ip}")
-        print(f"[DEBUG] flow.webrtc_ip: {flow.webrtc_ip}")
-        print(f"[DEBUG] as_http: {as_http} | as_webrtc: {as_webrtc}")
-        print(f"[DEBUG] countryCode_http: {http_info.get('countryCode')} | countryCode_webrtc: {webrtc_info.get('countryCode')}")
-        if as_http and as_webrtc and as_http != as_webrtc:
-            webrtc_ip_mismatch = 1
-        elif http_info.get("countryCode") != webrtc_info.get("countryCode"):
-            webrtc_ip_mismatch = 1
+        # Only compare when BOTH lookups actually succeeded. The fallback profile
+        # carries a placeholder "AS00000" ASN, and comparing that against a real
+        # one reported a mismatch every time the reputation API was unreachable.
+        both_resolved = (http_info.get("status") == "success"
+                         and webrtc_info.get("status") == "success")
+        # A dual-stack client can serve HTTP over IPv6 while WebRTC reveals its
+        # IPv4 address (or vice versa). The same ISP holds separate ASN records
+        # per family, so that difference is not evidence of a tunnel.
+        same_family = (":" in (client_ip or "")) == (":" in (flow.webrtc_ip or ""))
+        if both_resolved and same_family:
+            as_http = http_info.get("as", "").split()[0] if http_info.get("as") else ""
+            as_webrtc = webrtc_info.get("as", "").split()[0] if webrtc_info.get("as") else ""
+            if as_http and as_webrtc and as_http != as_webrtc:
+                webrtc_ip_mismatch = 1
+            elif http_info.get("countryCode") != webrtc_info.get("countryCode"):
+                webrtc_ip_mismatch = 1
     timezone_mismatch_score = is_timezone_mismatch(flow.timezone, http_info.get("timezone"))
     language_mismatch_score = 0
     if flow.language and http_info.get("countryCode"):
