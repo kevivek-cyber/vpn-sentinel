@@ -52,10 +52,39 @@ features = [
     'fwd_pkt_len_max', 'fwd_pkt_len_min', 'bwd_pkt_len_max', 'bwd_pkt_len_min',
     'fwd_pkt_len_std', 'bwd_pkt_len_std', 'flow_iat_max', 'flow_iat_min'
 ]
+EXTRA_PKT_STAT_COLS = [
+    'fwd_pkt_len_max', 'fwd_pkt_len_min', 'bwd_pkt_len_max', 'bwd_pkt_len_min',
+    'fwd_pkt_len_std', 'bwd_pkt_len_std', 'flow_iat_max', 'flow_iat_min'
+]
 print("\n--- Training Robust Stage 1: VPN vs Non-VPN (250 estimators) ---")
+# data/train_flows.csv is the synthetic dataset also used to train Stage 2's
+# protocol fingerprinter (see below). It only has the 8 core features -- no
+# detailed packet-length/IAT extremes -- so it's folded into Stage 1 here with
+# those columns blanked out, the same way it will be for Stage 2. Without this,
+# Stage 1 (trained only on the real capture dataset) and Stage 2 (trained only
+# on this synthetic one) disagree about what "VPN" looks like: traffic that's
+# clearly VPN-shaped by Stage 2's own training distribution could get called
+# clean by Stage 1 first and never reach Stage 2 at all.
+orig_train_df = pd.read_csv('data/train_flows.csv')
+orig_test_df = pd.read_csv('data/test_flows.csv')
+for col in EXTRA_PKT_STAT_COLS:
+    orig_train_df[col] = -1.0
+    orig_test_df[col] = -1.0
+
 vpn_train_df_s1 = train_df[train_df['is_vpn'] == 1].copy()
 adv_vpn_train_df_s1 = apply_evasion(vpn_train_df_s1)
-train_df_robust_s1 = pd.concat([train_df, adv_vpn_train_df_s1], ignore_index=True)
+train_df_robust_s1 = pd.concat([train_df, adv_vpn_train_df_s1, orig_train_df], ignore_index=True)
+# Callers that don't have detailed packet-length/IAT extremes available (e.g. the
+# dashboard's traffic simulator, or any lightweight client) send -1.0 as a
+# "not provided" sentinel for those 8 columns. Real captures never have negative
+# values there, so without seeing -1.0 during training the model treats it as an
+# extreme outlier and skews toward VPN regardless of the other signals. Train on
+# a copy of the real dataset with those columns blanked out too, so -1.0 is
+# learned as neutral rather than an artifact unique to the synthetic set above.
+missing_extras_df_s1 = train_df.copy()
+for col in EXTRA_PKT_STAT_COLS:
+    missing_extras_df_s1[col] = -1.0
+train_df_robust_s1 = pd.concat([train_df_robust_s1, missing_extras_df_s1], ignore_index=True)
 X_train_s1 = train_df_robust_s1[features]
 y_train_s1 = train_df_robust_s1['is_vpn']
 X_test_s1 = test_df[features]
@@ -66,17 +95,9 @@ y_pred_s1 = clf_s1.predict(X_test_s1)
 print("Stage 1 Test Classification Report (Clean Data):")
 print(classification_report(y_test_s1, y_pred_s1, target_names=['Non-VPN', 'VPN']))
 print("\n--- Training Robust Stage 2: Protocol Fingerprinting (250 estimators) ---")
-orig_train_df = pd.read_csv('data/train_flows.csv')
-orig_test_df = pd.read_csv('data/test_flows.csv')
 vpn_train_df = orig_train_df[orig_train_df['is_vpn'] == 1].copy()
 adv_vpn_train_df = apply_evasion(vpn_train_df)
 orig_train_df_robust = pd.concat([orig_train_df, adv_vpn_train_df], ignore_index=True)
-for col in [
-    'fwd_pkt_len_max', 'fwd_pkt_len_min', 'bwd_pkt_len_max', 'bwd_pkt_len_min',
-    'fwd_pkt_len_std', 'bwd_pkt_len_std', 'flow_iat_max', 'flow_iat_min'
-]:
-    orig_train_df_robust[col] = -1.0
-    orig_test_df[col] = -1.0
 vpn_train_df_robust = orig_train_df_robust[orig_train_df_robust['is_vpn'] == 1]
 X_train_s2 = vpn_train_df_robust[features]
 y_train_s2 = vpn_train_df_robust['vpn_protocol']
