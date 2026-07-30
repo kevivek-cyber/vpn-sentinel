@@ -12,9 +12,6 @@
 
 
         body {
-            /* Nothing on this page should scroll the viewport sideways; a stray
-               wide child used to drag the whole page horizontally. */
-            overflow-x: hidden;
             background-color: var(--bg-color);
             background-image:
                 radial-gradient(at 10% 10%, rgba(79, 124, 255, 0.16) 0px, transparent 45%),
@@ -102,11 +99,9 @@
             line-height: 1.1;
             color: #ffffff;
         }
+
         .gradient-text {
-            background: linear-gradient(135deg, #3b82f6, #a855f7);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--accent-primary);
             display: inline-block;
         }
 
@@ -189,8 +184,9 @@
             font-size: 0.88rem;
             color: var(--text-muted);
         }
+
         .action-btn {
-            background: linear-gradient(135deg, var(--accent-primary), #1d4ed8);
+            background: var(--accent-primary);
             border: none;
             outline: none;
             color: white;
@@ -199,17 +195,16 @@
             padding: 14px 28px;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
             transition: all 0.2s ease;
             white-space: nowrap;
             display: flex;
             align-items: center;
             gap: 8px;
         }
+
         .action-btn:hover {
             transform: translateY(-1px);
             filter: brightness(1.1);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
 
         .action-btn:disabled {
@@ -490,29 +485,22 @@
             display: grid;
             gap: 24px;
         }
+
         .verdict-card {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(15, 22, 37, 0.88);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 24px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
             padding: 28px;
             gap: 24px;
-            flex-wrap: wrap;
         }
 
         .verdict-details {
             display: flex;
             flex-direction: column;
             gap: 12px;
-            /* Without this, flex refuses to shrink the column below its longest
-               line and the card overflows the viewport instead of wrapping. */
-            min-width: 0;
-        }
-
-        .verdict-title {
-            overflow-wrap: anywhere;
         }
 
         .verdict-title {
@@ -644,10 +632,11 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 16px;
         }
+
         .stat-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 18px;
+            background: var(--panel-bg-soft);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
             padding: 20px;
             min-height: 120px;
             position: relative;
@@ -675,7 +664,6 @@
         }
 
         .stat-val {
-            overflow-wrap: anywhere;
             font-size: 1.5rem;
             font-weight: 700;
             margin-top: 10px;
@@ -733,8 +721,6 @@
         }
 
         .verdict-info-group {
-            min-width: 0;
-            flex: 1 1 220px;
             display: flex;
             align-items: center;
             gap: 16px;
@@ -808,19 +794,13 @@
             align-items: center;
             gap: 12px;
             font-size: 0.75rem;
-            min-width: 0;
         }
 
         .shap-feature-name {
-            flex: 0 1 90px;
-            min-width: 0;
+            width: 90px;
             font-family: monospace;
             color: var(--text-muted);
             text-align: right;
-            /* Feature names are long identifiers; truncate rather than overflow. */
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         .shap-bar-container {
@@ -848,7 +828,7 @@
         }
 
         .shap-val {
-            flex: 0 0 44px;
+            width: 44px;
             font-weight: 700;
             font-family: monospace;
             text-align: left;
@@ -1144,7 +1124,6 @@
                 align-items: start;
             }
             .stats-grid {
-                /* Deliberately 2 columns on desktop: this grid sits in the narrower
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 12px !important;
             }
@@ -1296,47 +1275,8 @@
                 height: 75px !important;
             }
             .stats-grid {
-                grid-template-columns: repeat(3, 1fr) !important;
-                gap: 6px !important;
+                grid-template-columns: repeat(2, 1fr) !important;
             }
-        }
-
-
-        /* ---- Scan-page identity ----
-           This page keeps its original gradient treatment. Deliberately scoped
-           here so the flat styling on the other four pages is untouched. */
-        .topnav {
-            padding: 18px 28px;
-            height: auto;
-            background: rgba(11, 15, 25, 0.55);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: none;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .brand-mark {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-vpn));
-            box-shadow: 0 0 18px rgba(59, 130, 246, 0.35);
-        }
-
-        .brand-name {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.05;
-            font-size: 0.95rem;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .brand-name .sub { color: var(--text-main); font-weight: 800; }
-
-        @media (max-width: 768px) {
-            .topnav { padding: 14px 16px; }
         }
     </style>
 </head>
