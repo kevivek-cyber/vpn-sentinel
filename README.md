@@ -190,3 +190,15 @@ jupyter notebook VPN_Sentinel_Main.ipynb
 > **Deploying:** the app is not at the repository root, so set your platform's
 > root/base directory to `project` (on Render: *Settings → Build & Deploy →
 > Root Directory*). The start command itself stays `uvicorn backend.main:app`.
+
+---
+
+## 📬 Contact
+
+Built by **Vivek Dhamale**. Questions, feedback or collaboration — happy to hear from you.
+
+| | |
+| :--- | :--- |
+| ✉️ **Email** | [vivekdhamale71@gmail.com](mailto:vivekdhamale71@gmail.com) |
+| 📸 **Instagram** | [@_kevivek_](https://instagram.com/_kevivek_) |
+| 💻 **GitHub** | [@kevivek-cyber](https://github.com/kevivek-cyber) |
