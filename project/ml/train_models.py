@@ -3,7 +3,9 @@ import joblib
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, brier_score_loss
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.frozen import FrozenEstimator
 import shap
 from adversarial_shaper import apply_evasion
 os.makedirs('models', exist_ok=True)
@@ -15,6 +17,39 @@ os.makedirs('models', exist_ok=True)
 # the artefacts from ~172MB to a few MB on disk.
 FOREST_KWARGS = dict(n_estimators=100, max_depth=16, random_state=42, n_jobs=-1)
 MODEL_COMPRESS = 3
+# A Random Forest's predict_proba is just the fraction of trees voting for a
+# class, which is not a calibrated probability -- forests are typically
+# under-confident near the extremes. Platt scaling (sigmoid) maps that vote
+# fraction onto observed outcomes using held-out data, so "95%" actually means
+# "correct about 95% of the time". This can move a number DOWN as well as up;
+# the goal is a truthful number, not a higher one. cv='prefit' calibrates the
+# already-fitted forest instead of refitting, so no extra trees are created.
+# (sklearn >=1.6 expresses "already fitted" via FrozenEstimator; cv='prefit'
+# was removed.)
+CALIBRATION_HOLDOUT = 0.2
+
+def fit_calibrated(estimator, X, y):
+    X_fit, X_cal, y_fit, y_cal = tts(
+        X, y, test_size=CALIBRATION_HOLDOUT, random_state=42, stratify=y)
+    estimator.fit(X_fit, y_fit)
+    calibrated = CalibratedClassifierCV(FrozenEstimator(estimator), method='sigmoid')
+    calibrated.fit(X_cal, y_cal)
+    return calibrated
+
+def report_calibration(name, raw, cal, X, y):
+    """Brier score on the held-out test set; lower is better calibrated."""
+    try:
+        classes = sorted(set(y))
+        if len(classes) != 2:
+            return
+        truth = (np.asarray(y) == classes[1]).astype(int)
+        b_raw = brier_score_loss(truth, raw.predict_proba(X)[:, 1])
+        b_cal = brier_score_loss(truth, cal.predict_proba(X)[:, 1])
+        verdict = 'better' if b_cal < b_raw else 'worse'
+        print(f"  {name}: {b_raw:.4f} raw -> {b_cal:.4f} calibrated ({verdict})")
+    except Exception as e:
+        print(f"  {name}: calibration report skipped ({e})")
+
 print("Loading datasets...")
 def load_and_preprocess_new_data(filepath):
     df = pd.read_csv(filepath)
@@ -97,8 +132,8 @@ X_train_s1 = train_df_robust_s1[features]
 y_train_s1 = train_df_robust_s1['is_vpn']
 X_test_s1 = test_df[features]
 y_test_s1 = test_df['is_vpn']
-clf_s1 = RandomForestClassifier(**FOREST_KWARGS)
-clf_s1.fit(X_train_s1, y_train_s1)
+raw_s1 = RandomForestClassifier(**FOREST_KWARGS)
+clf_s1 = fit_calibrated(raw_s1, X_train_s1, y_train_s1)
 y_pred_s1 = clf_s1.predict(X_test_s1)
 print("Stage 1 Test Classification Report (Clean Data):")
 print(classification_report(y_test_s1, y_pred_s1, target_names=['Non-VPN', 'VPN']))
@@ -109,8 +144,8 @@ orig_train_df_robust = pd.concat([orig_train_df, adv_vpn_train_df], ignore_index
 vpn_train_df_robust = orig_train_df_robust[orig_train_df_robust['is_vpn'] == 1]
 X_train_s2 = vpn_train_df_robust[features]
 y_train_s2 = vpn_train_df_robust['vpn_protocol']
-clf_s2 = RandomForestClassifier(**FOREST_KWARGS)
-clf_s2.fit(X_train_s2, y_train_s2)
+raw_s2 = RandomForestClassifier(**FOREST_KWARGS)
+clf_s2 = fit_calibrated(raw_s2, X_train_s2, y_train_s2)
 vpn_test_df = orig_test_df[orig_test_df['is_vpn'] == 1]
 X_test_s2 = vpn_test_df[features]
 y_test_s2 = vpn_test_df['vpn_protocol']
@@ -150,24 +185,19 @@ X_train_br1 = train_br_df[timing_features].fillna(-1.0)
 y_train_br1 = train_br_df['is_vpn']
 X_test_br1 = test_br_df[timing_features].fillna(-1.0)
 y_test_br1 = test_br_df['is_vpn']
-clf_browser_s1 = RandomForestClassifier(**FOREST_KWARGS)
+raw_browser_s1 = RandomForestClassifier(**FOREST_KWARGS)
 X_train_br1_pert = apply_feature_noise(X_train_br1)
-clf_browser_s1.fit(X_train_br1_pert, y_train_br1)
+clf_browser_s1 = fit_calibrated(raw_browser_s1, X_train_br1_pert, y_train_br1)
 y_pred_br1 = clf_browser_s1.predict(X_test_br1)
 acc_br1 = accuracy_score(y_test_br1, y_pred_br1)
 print(f"Browser Stage 1 Model Accuracy (Multi-Signal): {acc_br1:.4f}")
-vpn_train_br_df = train_br_df[train_br_df['is_vpn'] == 1]
-X_train_br2 = vpn_train_br_df[timing_features].fillna(-1.0)
-y_train_br2 = vpn_train_br_df['vpn_protocol']
-vpn_test_br_df = test_br_df[test_br_df['is_vpn'] == 1]
-X_test_br2 = vpn_test_br_df[timing_features].fillna(-1.0)
-y_test_br2 = vpn_test_br_df['vpn_protocol']
-clf_browser_s2 = RandomForestClassifier(**FOREST_KWARGS)
-X_train_br2_pert = apply_feature_noise(X_train_br2)
-clf_browser_s2.fit(X_train_br2_pert, y_train_br2)
-y_pred_br2 = clf_browser_s2.predict(X_test_br2)
-acc_br2 = accuracy_score(y_test_br2, y_pred_br2)
-print(f"Browser Stage 2 Model Accuracy (Multi-Signal): {acc_br2:.4f}")
+# Browser Stage 2 (protocol fingerprinting from browser telemetry) has been
+# removed. Browser-observable signals carry almost no protocol information:
+# the WebRTC/timezone/proxy flags are identical across protocols and only
+# timing differs marginally, so it plateaued near 71% on three classes --
+# barely above the 33% floor -- and its ~50% confidence kept being read as the
+# detection verdict. Protocol fingerprinting is retained on the flow path,
+# where raw packet statistics support it at ~96%.
 print("\n--- Evaluating Adversarial Robustness ---")
 # Stage 1 trains on a real packet-capture dataset (vpn-non_vpn new data.csv) whose
 # feature scale differs drastically from data/test_flows_adversarial.csv (a separate
@@ -194,9 +224,14 @@ acc_s2_clean = accuracy_score(y_test_s2, y_pred_s2)
 acc_s2_adv = accuracy_score(y_test_adv_s2, y_pred_adv_s2)
 print(f"Stage 2 Clean Accuracy: {acc_s2_clean:.4f}")
 print(f"Stage 2 Adversarial Accuracy: {acc_s2_adv:.4f} (Drop: {acc_s2_clean - acc_s2_adv:.4f})")
+print("\n--- Probability Calibration (Brier score, lower is better) ---")
+report_calibration('Flow Stage 1   ', raw_s1, clf_s1, X_test_s1, y_test_s1)
+report_calibration('Browser Stage 1', raw_browser_s1, clf_browser_s1, X_test_br1, y_test_br1)
+
 print("\n--- Integrating SHAP Explainability ---")
-explainer_s1 = shap.TreeExplainer(clf_s1)
-explainer_s2 = shap.TreeExplainer(clf_s2)
+# TreeExplainer needs the tree ensemble, not the calibration wrapper.
+explainer_s1 = shap.TreeExplainer(raw_s1)
+explainer_s2 = shap.TreeExplainer(raw_s2)
 sample_vpn = vpn_test_df.iloc[0:1]
 sample_features = sample_vpn[features]
 shap_values_s1 = explainer_s1.shap_values(sample_features)
@@ -204,7 +239,11 @@ print("Sample SHAP analysis complete for Stage 1.")
 joblib.dump(clf_s1, 'models/stage1_model.pkl', compress=MODEL_COMPRESS)
 joblib.dump(clf_s2, 'models/stage2_model.pkl', compress=MODEL_COMPRESS)
 joblib.dump(clf_browser_s1, 'models/browser_stage1_model.pkl', compress=MODEL_COMPRESS)
-joblib.dump(clf_browser_s2, 'models/browser_stage2_model.pkl', compress=MODEL_COMPRESS)
+# The raw forests are saved alongside the calibrated ones purely so the API can
+# build SHAP explainers, which cannot operate on a calibration wrapper.
+joblib.dump(raw_s1, 'models/stage1_raw.pkl', compress=MODEL_COMPRESS)
+joblib.dump(raw_s2, 'models/stage2_raw.pkl', compress=MODEL_COMPRESS)
+joblib.dump(raw_browser_s1, 'models/browser_stage1_raw.pkl', compress=MODEL_COMPRESS)
 joblib.dump(features, 'models/features.pkl')
 joblib.dump(timing_features, 'models/timing_features.pkl')
 print("\nModels successfully saved to 'models/' directory.")

@@ -15,8 +15,10 @@
 Most VPN detectors just check an IP against a blocklist — easy for any half-decent VPN to evade. VPN Sentinel combines that with *behavioral* signals that are much harder to fake: how packets are timed, whether a browser's WebRTC leaks its real IP, whether the GPU looks like a cloud VM instead of a real laptop, whether the browser is being driven by automation. It's a two-stage ML pipeline:
 
 - **Stage 1** — is this traffic VPN or clean? (Random Forest, trained on real packet captures + synthetic data, resistant to adversarial evasion)
-- **Stage 2** — if it's a VPN, which protocol? (OpenVPN, WireGuard, or IKEv2)
+- **Stage 2** — if it's a VPN, which protocol? (OpenVPN, WireGuard, or IKEv2 — raw-packet path only)
 - **Explainability** — every prediction ships with a SHAP breakdown of exactly which feature drove the decision, in plain language
+- **Calibrated confidence** — probabilities are Platt-scaled against held-out data, so a reported
+  95% means "correct about 95% of the time" rather than merely "95% of trees agreed"
 
 There are two parallel models depending on what data is available: a **Flow Model** for raw network packet statistics, and a **Browser Model** for client-side telemetry when you only have a web request to work with.
 
@@ -44,9 +46,12 @@ The extracted features are fed into our **Stage 1 Random Forest Classifier**.
 - Trained against adversarial traffic-shaping (packet padding & timing delays), ensuring high evasion resistance.
 
 ### 3️⃣ Stage 2: Protocol Fingerprinting
-If Stage 1 flags the traffic as a VPN, it is immediately passed to the **Stage 2 Protocol Fingerprinter**.
-- The model classifies the exact tunneling protocol used: **OpenVPN, WireGuard, or IKEv2**.
+If the **flow** model flags traffic as a VPN, it is passed to the **Stage 2 Protocol Fingerprinter**.
+- The model classifies the exact tunneling protocol used: **OpenVPN, WireGuard, or IKEv2** (~96% accurate).
 - This enables granular security policies (e.g., allowing corporate IPSec while blocking consumer WireGuard).
+- Protocol fingerprinting is deliberately **not** offered on the browser path: browser-observable
+  signals are near-identical across protocols, so it plateaued around 71% on three classes and
+  reporting it implied more certainty than the data supports.
 
 ### 4️⃣ SHAP Explainability & Alerting
 VPN Sentinel doesn't just block traffic—it explains *why*. 
@@ -70,7 +75,8 @@ graph TD
     
     %% Stage 1 Logic
     Stage1 -->|Clean Traffic| DB[(Database Log)]
-    Stage1 -->|VPN Detected| Stage2[Stage 2: Protocol Fingerprint]
+    Stage1 -->|VPN, flow path| Stage2[Stage 2: Protocol Fingerprint]
+    Stage1 -->|VPN, browser path| SHAP
     
     %% Stage 2 Logic
     Stage2 --> OpenVPN(OpenVPN)
@@ -108,7 +114,7 @@ Our models are trained on highly specific dimensions to prevent overfitting and 
 | Model Type | Features Used | Key Data Points |
 | :--- | :--- | :--- |
 | **Flow Model** | 16 Features | `duration`, `packets_per_sec`, Packet length constraints (min/max/std), IAT constraints (min/max/std), `jitter_ratio` |
-| **Browser Model** | 17 Features | Timing basics + `webrtc_blocked`, `timezone_mismatch_score`, `language_mismatch_score`, `is_datacenter_ip`, `is_virtual_gpu`, `is_automation_flagged`, `low_font_count` |
+| **Browser Model** (detection only) | 17 Features | Timing basics + `webrtc_blocked`, `timezone_mismatch_score`, `language_mismatch_score`, `is_datacenter_ip`, `is_virtual_gpu`, `is_automation_flagged`, `low_font_count` |
 
 ---
 
@@ -116,7 +122,7 @@ Our models are trained on highly specific dimensions to prevent overfitting and 
 
 - **Adversarial Robustness:** Resists traffic shaping, packet padding, and evasion tools.
 - **Real-Time SOC Dashboard:** Live frontend mapping global threats and traffic logs, responsive on desktop and mobile.
-- **Protocol Deep-Dive:** Distinguishes between modern UDP/TCP VPN protocols seamlessly.
+- **Protocol Deep-Dive:** Distinguishes OpenVPN, WireGuard and IKEv2 on the raw-packet path (~96%).
 - **No-Payload Inspection:** 100% privacy-compliant; we never decrypt or inspect packet payloads (Deep Packet Inspection is not required).
 - **TLE Policy Enforcement:** VPN sessions that run past a configurable duration threshold (default 30s) are flagged as a Time Limit Exceeded policy violation.
 - **Rate Limiting:** `/api/ingest` is capped per-client to prevent abuse of the inference pipeline.

@@ -18,21 +18,28 @@ init_db()
 STAGE1_PATH = "models/stage1_model.pkl"
 STAGE2_PATH = "models/stage2_model.pkl"
 BROWSER_STAGE1_PATH = "models/browser_stage1_model.pkl"
-BROWSER_STAGE2_PATH = "models/browser_stage2_model.pkl"
 FEATURES_PATH = "models/features.pkl"
 TIMING_FEATURES_PATH = "models/timing_features.pkl"
+# The *_raw forests exist only so SHAP can explain a prediction: TreeExplainer
+# needs the tree ensemble, and the served models are Platt-calibrated wrappers.
+STAGE1_RAW_PATH = "models/stage1_raw.pkl"
+STAGE2_RAW_PATH = "models/stage2_raw.pkl"
+BROWSER_STAGE1_RAW_PATH = "models/browser_stage1_raw.pkl"
 if not (os.path.exists(STAGE1_PATH) and os.path.exists(STAGE2_PATH) and os.path.exists(FEATURES_PATH)):
     raise RuntimeError("Models not trained. Please run train_models.py first.")
 model_s1 = joblib.load(STAGE1_PATH)
 model_s2 = joblib.load(STAGE2_PATH)
 features = joblib.load(FEATURES_PATH)
-explainer_s1 = shap.TreeExplainer(model_s1)
-explainer_s2 = shap.TreeExplainer(model_s2)
+explainer_s1 = shap.TreeExplainer(joblib.load(STAGE1_RAW_PATH))
+explainer_s2 = shap.TreeExplainer(joblib.load(STAGE2_RAW_PATH))
 model_br_s1 = joblib.load(BROWSER_STAGE1_PATH)
-model_br_s2 = joblib.load(BROWSER_STAGE2_PATH)
 timing_features = joblib.load(TIMING_FEATURES_PATH)
-explainer_br_s1 = shap.TreeExplainer(model_br_s1)
-explainer_br_s2 = shap.TreeExplainer(model_br_s2)
+explainer_br_s1 = shap.TreeExplainer(joblib.load(BROWSER_STAGE1_RAW_PATH))
+# No browser Stage 2: protocol fingerprinting from browser telemetry plateaued
+# near 71% on three classes (33% floor), so the browser path reports the VPN
+# verdict only. The flow path keeps protocol fingerprinting at ~96%.
+model_br_s2 = None
+explainer_br_s2 = None
 app = FastAPI(title="VPN-Sentinel Inference API")
 app.add_middleware(
     CORSMiddleware,
@@ -406,7 +413,9 @@ def ingest_flow(flow: FlowInput, request: Request, db: Session = Depends(get_db)
     top_feature, top_val = feature_importance[0]
     direction = "increased" if top_val > 0 else "decreased"
     explanation_str = f"Flow classified as {'VPN' if is_vpn_pred else 'Non-VPN'} primarily because feature '{top_feature}' {direction} the prediction confidence."
-    if is_vpn_pred:
+    # active_model_s2 is None on the browser path, where protocol fingerprinting
+    # is not reliable enough to report.
+    if is_vpn_pred and active_model_s2 is not None:
         prob_s2 = active_model_s2.predict_proba(input_df_imputed)[0]
         proto_idx = int(active_model_s2.predict(input_df_imputed)[0])
         protocols_map = {0: "OpenVPN", 1: "WireGuard", 2: "IKEv2"}

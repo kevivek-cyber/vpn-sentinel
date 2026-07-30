@@ -220,9 +220,9 @@
 
     <div class="doc-container" id="main">
         <div class="panel rise rise-1">
-            <h1>The 6 AI Models</h1>
+            <h1>The Model Pipeline</h1>
             <p class="lede">
-                VPN-Sentinel uses a branched, multi-stage architecture. Six distinct models — four Random Forest classifiers and two SHAP explainers — work together depending on the traffic source.
+                VPN-Sentinel uses a branched, multi-stage architecture. Five models work together depending on the traffic source: three Random Forest classifiers and two SHAP explainers.
             </p>
             <p class="hint">Click on any card below to see exactly how that specific model works.</p>
 
@@ -256,12 +256,6 @@
                         <div class="model-icon">🧬</div>
                         <div class="model-title">Flow Stage 2 Model</div>
                         <div class="model-desc">Fingerprints exact VPN Protocols (OpenVPN, WireGuard).</div>
-                    </div>
-
-                    <div class="panel-interactive model-card" id="node-browser-s2" onclick="openModal('browser-s2')" style="border-top: 2px solid var(--accent-safe);">
-                        <div class="model-icon">🧩</div>
-                        <div class="model-title">Browser Stage 2 Model</div>
-                        <div class="model-desc">Fingerprints VPN Protocols in browser environments.</div>
                     </div>
                 </div>
 
@@ -338,14 +332,6 @@
                     </ul>
                 `
             },
-            'browser-s2': {
-                title: '🧩 Browser Stage 2 Model',
-                body: `
-                    <p><strong>What it does:</strong> Fingerprints the VPN protocol specifically from a web/browser context.</p>
-                    <p><strong>How it works:</strong> Web traffic obfuscates standard packet signatures, so this model relies heavily on HTTP-level latency, WebRTC blocking behaviors, and Datacenter correlations to guess the underlying tunnel type.</p>
-                    <p><strong>Why it's separate:</strong> Browser telemetry has no access to raw TCP/UDP headers, making this model rely entirely on timing features and API overrides.</p>
-                `
-            },
             'flow-shap': {
                 title: '🧠 Flow SHAP Explainer',
                 body: `
@@ -416,16 +402,16 @@
             const fs1 = getCenter(document.getElementById('node-flow-s1'));
             const bs1 = getCenter(document.getElementById('node-browser-s1'));
             const fs2 = getCenter(document.getElementById('node-flow-s2'));
-            const bs2 = getCenter(document.getElementById('node-browser-s2'));
             const fshap = getCenter(document.getElementById('node-flow-shap'));
             const bshap = getCenter(document.getElementById('node-browser-shap'));
 
             createLine(src, fs1, 'rgba(255,255,255,0.15)');
             createLine(src, bs1, 'rgba(255,255,255,0.15)');
             createLine(fs1, fs2, 'rgba(79, 124, 255, 0.4)');
-            createLine(bs1, bs2, 'rgba(45, 212, 167, 0.4)');
             createLine(fs2, fshap, 'rgba(239, 74, 90, 0.4)');
-            createLine(bs2, bshap, 'rgba(239, 74, 90, 0.4)');
+            // Browser path skips protocol fingerprinting and goes straight
+            // from detection to explanation.
+            createLine(bs1, bshap, 'rgba(45, 212, 167, 0.4)');
         }
 
         window.addEventListener('resize', drawLines);

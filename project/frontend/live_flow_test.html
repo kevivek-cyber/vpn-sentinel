@@ -2072,8 +2072,10 @@
                 console.warn('Backend connection failed, falling back to mock demo data:', err);
                 data = {
                     is_vpn: Math.random() > 0.5,
-                    vpn_protocol: Math.random() > 0.5 ? 'OpenVPN' : 'IKEv2',
-                    confidence: 0.82 + Math.random() * 0.15,
+                    // Mirrors the real browser path, which returns no protocol.
+                    vpn_protocol: null,
+                    protocol_confidence: null,
+                    confidence: 0.90 + Math.random() * 0.08,
                     explanation: 'The connection exhibits characteristic behavior of commercial VPN servers, including higher packet Jitter and a hosting/datacenter IP range.'
                 };
             }
@@ -2089,13 +2091,18 @@
 
             if (data.is_vpn) {
                 verdictText.innerText = data.is_tle ? 'VPN DETECTED — TLE' : 'VPN DETECTED';
-                verdictProtocol.innerText = data.vpn_protocol || 'IKEv2';
+                verdictProtocol.innerText = data.vpn_protocol || 'Tunnel';
                 verdictPanel.className = 'verdict-card vpn-alert';
-                document.getElementById('f-proto').innerText = data.vpn_protocol || 'IKEv2';
                 const pc = data.protocol_confidence;
+                // Protocol fingerprinting is only available on the raw-packet path.
+                // Browser telemetry cannot separate the protocols reliably, so the
+                // backend returns null here rather than guessing.
+                document.getElementById('f-proto').innerText = data.vpn_protocol || 'VPN Detected';
                 document.getElementById('f-proto-sub').innerText = data.is_tle
                     ? 'Time Limit Exceeded'
-                    : (pc != null ? `VPN Protocol · ${(pc * 100).toFixed(0)}% confidence` : 'VPN Protocol');
+                    : (data.vpn_protocol
+                        ? (pc != null ? `Protocol · ${(pc * 100).toFixed(0)}% confidence` : 'VPN Protocol')
+                        : 'Protocol needs packet capture');
             } else {
                 verdictText.innerText = 'RESIDENTIAL SECURE';
                 verdictProtocol.innerText = 'None';
