@@ -12,6 +12,9 @@
 
 
         body {
+            /* Nothing on this page should scroll the viewport sideways; a stray
+               wide child used to drag the whole page horizontally. */
+            overflow-x: hidden;
             background-color: var(--bg-color);
             background-image:
                 radial-gradient(at 10% 10%, rgba(79, 124, 255, 0.16) 0px, transparent 45%),
@@ -495,12 +498,20 @@
             border-radius: 12px;
             padding: 28px;
             gap: 24px;
+            flex-wrap: wrap;
         }
 
         .verdict-details {
             display: flex;
             flex-direction: column;
             gap: 12px;
+            /* Without this, flex refuses to shrink the column below its longest
+               line and the card overflows the viewport instead of wrapping. */
+            min-width: 0;
+        }
+
+        .verdict-title {
+            overflow-wrap: anywhere;
         }
 
         .verdict-title {
@@ -629,7 +640,9 @@
 
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            /* auto-fit means the browser drops to fewer columns when they would
+               get too narrow, rather than squeezing three onto a 375px screen. */
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 16px;
         }
 
@@ -664,6 +677,7 @@
         }
 
         .stat-val {
+            overflow-wrap: anywhere;
             font-size: 1.5rem;
             font-weight: 700;
             margin-top: 10px;
@@ -721,6 +735,8 @@
         }
 
         .verdict-info-group {
+            min-width: 0;
+            flex: 1 1 220px;
             display: flex;
             align-items: center;
             gap: 16px;
@@ -794,13 +810,19 @@
             align-items: center;
             gap: 12px;
             font-size: 0.75rem;
+            min-width: 0;
         }
 
         .shap-feature-name {
-            width: 90px;
+            flex: 0 1 90px;
+            min-width: 0;
             font-family: monospace;
             color: var(--text-muted);
             text-align: right;
+            /* Feature names are long identifiers; truncate rather than overflow. */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .shap-bar-container {
@@ -828,7 +850,7 @@
         }
 
         .shap-val {
-            width: 44px;
+            flex: 0 0 44px;
             font-weight: 700;
             font-family: monospace;
             text-align: left;
@@ -998,7 +1020,7 @@
 
             /* 3 Columns statistics cards exactly like screenshot */
             .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
                 gap: 8px;
             }
 
@@ -1055,7 +1077,7 @@
 
         @media (max-width: 480px) {
             .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
                 gap: 6px;
             }
             
@@ -1124,6 +1146,8 @@
                 align-items: start;
             }
             .stats-grid {
+                /* Deliberately 2 columns on desktop: this grid sits in the narrower
+                   left column, so auto-fit would spread it to four cramped cards. */
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 12px !important;
             }
@@ -1197,10 +1221,13 @@
                 padding: 12px 12px 16px !important;
             }
             .intro-panel {
-                grid-template-columns: 1.35fr 0.65fr !important;
-                gap: 12px !important;
+                /* Stack instead of splitting a phone screen two ways. */
+                grid-template-columns: 1fr !important;
+                gap: 14px !important;
                 margin-bottom: 12px !important;
             }
+            /* The decorative globe costs vertical space it cannot justify here. */
+            .globe-wrapper { display: none !important; }
             .title {
                 font-size: 1.6rem !important;
                 margin-bottom: 6px !important;
@@ -1224,7 +1251,7 @@
                 padding: 14px !important;
             }
             .stats-grid {
-                grid-template-columns: repeat(3, 1fr) !important;
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
                 gap: 8px !important;
             }
             .stat-card {
@@ -1275,7 +1302,10 @@
                 height: 75px !important;
             }
             .stats-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
+                /* 130px keeps two columns even on a 320px screen; 150px collapsed
+                   these to a single column and made the results panel very tall. */
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
+                gap: 8px !important;
             }
         }
     </style>
