@@ -40,7 +40,15 @@ explainer_br_s1 = shap.TreeExplainer(joblib.load(BROWSER_STAGE1_RAW_PATH))
 # verdict only. The flow path keeps protocol fingerprinting at ~96%.
 model_br_s2 = None
 explainer_br_s2 = None
-app = FastAPI(title="VPN-Sentinel Inference API")
+# FastAPI mounts its Swagger UI at /docs by default, and because that route is
+# registered when the app is constructed it shadowed our own /docs route -- the
+# "Integration Guide" nav link had always been landing on Swagger instead of the
+# page. Move the generated API reference aside so /docs belongs to the site.
+app = FastAPI(
+    title="VPN-Sentinel Inference API",
+    docs_url="/api-docs",
+    redoc_url="/api-redoc",
+)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

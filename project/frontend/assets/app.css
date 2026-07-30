@@ -524,3 +524,89 @@ tbody tr:last-child td { border-bottom: none; }
     .page-header { padding: var(--sp-5) var(--sp-4) 0; flex-wrap: wrap; row-gap: 10px; }
     .panel { padding: var(--sp-4); border-radius: var(--radius-md); }
 }
+
+/* ---------- Site footer / contact ---------- */
+.site-footer {
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--sp-10);
+    padding: var(--sp-8) max(var(--sp-6), var(--safe-l)) calc(var(--sp-8) + var(--safe-b));
+    background: var(--bg-subtle);
+}
+
+.site-footer-inner {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-5);
+    flex-wrap: wrap;
+}
+
+.footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.footer-brand-text { min-width: 0; }
+
+.footer-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.footer-tagline {
+    font-size: 0.79rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.footer-contact {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+}
+
+.footer-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 13px;
+    min-height: 40px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 550;
+    white-space: nowrap;
+    transition: color var(--transition), border-color var(--transition), background var(--transition);
+}
+.footer-link svg { width: 15px; height: 15px; flex-shrink: 0; }
+.footer-link:hover {
+    color: var(--text-main);
+    border-color: var(--border-strong);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.footer-legal {
+    max-width: var(--content-max);
+    margin: var(--sp-5) auto 0;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 700px) {
+    .site-footer {
+        margin-top: var(--sp-8);
+        padding: var(--sp-6) max(var(--sp-4), var(--safe-l)) calc(var(--sp-6) + var(--safe-b));
+    }
+    .site-footer-inner { flex-direction: column; align-items: flex-start; gap: var(--sp-4); }
+    /* Full-width tap targets read better than a cramped row on a phone. */
+    .footer-contact { width: 100%; }
+    .footer-link { flex: 1 1 auto; justify-content: center; }
+}
