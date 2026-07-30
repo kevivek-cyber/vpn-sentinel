@@ -102,9 +102,11 @@
             line-height: 1.1;
             color: #ffffff;
         }
-
         .gradient-text {
-            color: var(--accent-primary);
+            background: linear-gradient(135deg, #3b82f6, #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
             display: inline-block;
         }
 
@@ -187,9 +189,8 @@
             font-size: 0.88rem;
             color: var(--text-muted);
         }
-
         .action-btn {
-            background: var(--accent-primary);
+            background: linear-gradient(135deg, var(--accent-primary), #1d4ed8);
             border: none;
             outline: none;
             color: white;
@@ -198,16 +199,17 @@
             padding: 14px 28px;
             border-radius: 50px;
             cursor: pointer;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
             transition: all 0.2s ease;
             white-space: nowrap;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-
         .action-btn:hover {
             transform: translateY(-1px);
             filter: brightness(1.1);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
         }
 
         .action-btn:disabled {
@@ -488,14 +490,13 @@
             display: grid;
             gap: 24px;
         }
-
         .verdict-card {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            background: rgba(15, 22, 37, 0.88);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
             padding: 28px;
             gap: 24px;
             flex-wrap: wrap;
@@ -643,11 +644,10 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 16px;
         }
-
         .stat-card {
-            background: var(--panel-bg-soft);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 18px;
             padding: 20px;
             min-height: 120px;
             position: relative;
@@ -1218,13 +1218,10 @@
                 padding: 12px 12px 16px !important;
             }
             .intro-panel {
-                /* Stack instead of splitting a phone screen two ways. */
-                grid-template-columns: 1fr !important;
-                gap: 14px !important;
+                grid-template-columns: 1.35fr 0.65fr !important;
+                gap: 12px !important;
                 margin-bottom: 12px !important;
             }
-            /* The decorative globe costs vertical space it cannot justify here. */
-            .globe-wrapper { display: none !important; }
             .title {
                 font-size: 1.6rem !important;
                 margin-bottom: 6px !important;
@@ -1300,76 +1297,46 @@
             }
             .stats-grid {
                 grid-template-columns: repeat(3, 1fr) !important;
-                gap: 5px !important;
+                gap: 6px !important;
             }
         }
 
-        /* ---- Compact mobile scale ----
-           Three stat columns on a 320-414px screen leaves roughly 92-120px per
-           card. Everything inside is scaled to that budget so the panel stays
-           dense and fits, instead of spilling past the viewport. */
-        @media (max-width: 768px) {
-            .container            { padding: 10px 10px 14px !important; }
-            .results-panel        { gap: 10px !important; }
-            .results-left-col,
-            .results-right-col    { gap: 10px !important; }
 
-            /* Verdict */
-            .verdict-card         { padding: 12px !important; gap: 10px !important; }
-            .verdict-info-group   { gap: 10px !important; }
-            .verdict-details      { gap: 6px !important; }
-            .verdict-section-label{ font-size: 0.56rem !important; letter-spacing: 0.04em !important; }
-            .verdict-title        { font-size: 1.15rem !important; line-height: 1.15 !important; }
-            .verdict-supported    { font-size: 0.72rem !important; gap: 5px !important; }
-            .protocol-pill        { padding: 2px 7px !important; font-size: 0.66rem !important; }
-            .verdict-icon-wrapper { width: 34px !important; height: 34px !important; }
-            .verdict-icon-wrapper svg { width: 17px !important; height: 17px !important; }
-            .gauge-wrapper        { width: 78px !important; height: 78px !important; }
-            .gauge-num            { font-size: 1.02rem !important; }
-            .gauge-lbl            { font-size: 0.44rem !important; }
-            .gauge-confidence-badge { font-size: 0.5rem !important; padding: 2px 6px !important; }
-
-            /* Stat cards — the tightest constraint on the page */
-            .stats-grid           { gap: 6px !important; }
-            .stat-card            { padding: 7px 6px 22px !important;   /* 22px clears the 18px sparkline */
-                                    min-height: 66px !important; height: auto !important;
-                                    border-radius: 9px !important; }
-            .stat-header          { gap: 3px !important; }
-            .stat-icon            { width: 10px !important; height: 10px !important; }
-            .stat-label-text      { font-size: 0.55rem !important; line-height: 1.15 !important;
-                                    letter-spacing: 0 !important; }
-            .stat-val             { font-size: 0.88rem !important; margin-top: 3px !important; }
-            .sparkline-container  { height: 18px !important; margin-top: 3px !important; }
-
-            /* SHAP explanation */
-            .shap-card            { padding: 12px !important; gap: 9px !important; }
-            .shap-row             { gap: 7px !important; font-size: 0.66rem !important; }
-            .shap-feature-name    { flex-basis: 68px !important; }
-            .shap-val             { flex-basis: 36px !important; }
-            .explain-body-text    { font-size: 0.76rem !important; line-height: 1.42 !important; }
-
-            /* Scan stepper */
-            .scanning-panel       { padding: 14px !important; }
-            .scanning-title       { font-size: 1.05rem !important; }
-            .scanning-subtitle    { font-size: 0.74rem !important; }
-            .footer-note          { padding: 8px 11px !important; font-size: 0.7rem !important; }
-            .env-signals          { gap: 5px !important; margin-bottom: 10px !important; }
-            .env-badge            { padding: 4px 8px !important; font-size: 0.66rem !important; }
+        /* ---- Scan-page identity ----
+           This page keeps its original gradient treatment. Deliberately scoped
+           here so the flat styling on the other four pages is untouched. */
+        .topnav {
+            padding: 18px 28px;
+            height: auto;
+            background: rgba(11, 15, 25, 0.55);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: none;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        @media (max-width: 400px) {
-            .container            { padding: 8px 8px 12px !important; }
-            .stats-grid           { gap: 4px !important; }
-            .stat-card            { padding: 6px 4px 19px !important;   /* 19px clears the 15px sparkline */
-                                    min-height: 58px !important; }
-            .stat-label-text      { font-size: 0.5rem !important; }
-            .stat-val             { font-size: 0.8rem !important; }
-            .sparkline-container  { height: 15px !important; }
-            .verdict-title        { font-size: 1.02rem !important; }
-            .gauge-wrapper        { width: 68px !important; height: 68px !important; }
-            .gauge-num            { font-size: 0.9rem !important; }
-            .shap-feature-name    { flex-basis: 58px !important; }
-            .shap-row             { font-size: 0.62rem !important; gap: 6px !important; }
+        .brand-mark {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-vpn));
+            box-shadow: 0 0 18px rgba(59, 130, 246, 0.35);
+        }
+
+        .brand-name {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.05;
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .brand-name .sub { color: var(--text-main); font-weight: 800; }
+
+        @media (max-width: 768px) {
+            .topnav { padding: 14px 16px; }
         }
     </style>
 </head>
