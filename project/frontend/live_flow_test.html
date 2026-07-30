@@ -640,9 +640,7 @@
 
         .stats-grid {
             display: grid;
-            /* auto-fit means the browser drops to fewer columns when they would
-               get too narrow, rather than squeezing three onto a 375px screen. */
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 16px;
         }
 
@@ -1020,7 +1018,7 @@
 
             /* 3 Columns statistics cards exactly like screenshot */
             .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                grid-template-columns: repeat(3, 1fr);
                 gap: 8px;
             }
 
@@ -1077,7 +1075,7 @@
 
         @media (max-width: 480px) {
             .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                grid-template-columns: repeat(3, 1fr);
                 gap: 6px;
             }
             
@@ -1147,7 +1145,6 @@
             }
             .stats-grid {
                 /* Deliberately 2 columns on desktop: this grid sits in the narrower
-                   left column, so auto-fit would spread it to four cramped cards. */
                 grid-template-columns: repeat(2, 1fr) !important;
                 gap: 12px !important;
             }
@@ -1251,7 +1248,7 @@
                 padding: 14px !important;
             }
             .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)) !important;
+                grid-template-columns: repeat(3, 1fr) !important;
                 gap: 8px !important;
             }
             .stat-card {
@@ -1302,11 +1299,77 @@
                 height: 75px !important;
             }
             .stats-grid {
-                /* 130px keeps two columns even on a 320px screen; 150px collapsed
-                   these to a single column and made the results panel very tall. */
-                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)) !important;
-                gap: 8px !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 5px !important;
             }
+        }
+
+        /* ---- Compact mobile scale ----
+           Three stat columns on a 320-414px screen leaves roughly 92-120px per
+           card. Everything inside is scaled to that budget so the panel stays
+           dense and fits, instead of spilling past the viewport. */
+        @media (max-width: 768px) {
+            .container            { padding: 10px 10px 14px !important; }
+            .results-panel        { gap: 10px !important; }
+            .results-left-col,
+            .results-right-col    { gap: 10px !important; }
+
+            /* Verdict */
+            .verdict-card         { padding: 12px !important; gap: 10px !important; }
+            .verdict-info-group   { gap: 10px !important; }
+            .verdict-details      { gap: 6px !important; }
+            .verdict-section-label{ font-size: 0.56rem !important; letter-spacing: 0.04em !important; }
+            .verdict-title        { font-size: 1.15rem !important; line-height: 1.15 !important; }
+            .verdict-supported    { font-size: 0.72rem !important; gap: 5px !important; }
+            .protocol-pill        { padding: 2px 7px !important; font-size: 0.66rem !important; }
+            .verdict-icon-wrapper { width: 34px !important; height: 34px !important; }
+            .verdict-icon-wrapper svg { width: 17px !important; height: 17px !important; }
+            .gauge-wrapper        { width: 78px !important; height: 78px !important; }
+            .gauge-num            { font-size: 1.02rem !important; }
+            .gauge-lbl            { font-size: 0.44rem !important; }
+            .gauge-confidence-badge { font-size: 0.5rem !important; padding: 2px 6px !important; }
+
+            /* Stat cards — the tightest constraint on the page */
+            .stats-grid           { gap: 6px !important; }
+            .stat-card            { padding: 7px 6px 22px !important;   /* 22px clears the 18px sparkline */
+                                    min-height: 66px !important; height: auto !important;
+                                    border-radius: 9px !important; }
+            .stat-header          { gap: 3px !important; }
+            .stat-icon            { width: 10px !important; height: 10px !important; }
+            .stat-label-text      { font-size: 0.55rem !important; line-height: 1.15 !important;
+                                    letter-spacing: 0 !important; }
+            .stat-val             { font-size: 0.88rem !important; margin-top: 3px !important; }
+            .sparkline-container  { height: 18px !important; margin-top: 3px !important; }
+
+            /* SHAP explanation */
+            .shap-card            { padding: 12px !important; gap: 9px !important; }
+            .shap-row             { gap: 7px !important; font-size: 0.66rem !important; }
+            .shap-feature-name    { flex-basis: 68px !important; }
+            .shap-val             { flex-basis: 36px !important; }
+            .explain-body-text    { font-size: 0.76rem !important; line-height: 1.42 !important; }
+
+            /* Scan stepper */
+            .scanning-panel       { padding: 14px !important; }
+            .scanning-title       { font-size: 1.05rem !important; }
+            .scanning-subtitle    { font-size: 0.74rem !important; }
+            .footer-note          { padding: 8px 11px !important; font-size: 0.7rem !important; }
+            .env-signals          { gap: 5px !important; margin-bottom: 10px !important; }
+            .env-badge            { padding: 4px 8px !important; font-size: 0.66rem !important; }
+        }
+
+        @media (max-width: 400px) {
+            .container            { padding: 8px 8px 12px !important; }
+            .stats-grid           { gap: 4px !important; }
+            .stat-card            { padding: 6px 4px 19px !important;   /* 19px clears the 15px sparkline */
+                                    min-height: 58px !important; }
+            .stat-label-text      { font-size: 0.5rem !important; }
+            .stat-val             { font-size: 0.8rem !important; }
+            .sparkline-container  { height: 15px !important; }
+            .verdict-title        { font-size: 1.02rem !important; }
+            .gauge-wrapper        { width: 68px !important; height: 68px !important; }
+            .gauge-num            { font-size: 0.9rem !important; }
+            .shap-feature-name    { flex-basis: 58px !important; }
+            .shap-row             { font-size: 0.62rem !important; gap: 6px !important; }
         }
     </style>
 </head>
