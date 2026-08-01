@@ -116,16 +116,44 @@ Our models are trained on highly specific dimensions to prevent overfitting and 
 | **Flow Model** | 16 Features | `duration`, `packets_per_sec`, Packet length constraints (min/max/std), IAT constraints (min/max/std), `jitter_ratio` |
 | **Browser Model** (detection only) | 17 Features | Timing basics + `webrtc_blocked`, `timezone_mismatch_score`, `language_mismatch_score`, `is_datacenter_ip`, `is_virtual_gpu`, `is_automation_flagged`, `low_font_count` |
 
+Both classifiers are **Random Forests with Platt (sigmoid) probability calibration** — `predict_proba` on a raw forest is just "what fraction of trees voted this way," which tends to be over- or under-confident near the extremes. Calibration is fit on a held-out slice and verified with a before/after Brier score at training time, so a reported confidence is a truthful number, not just a popular one.
+
+---
+
+## 🔍 Every Detection Signal, In Detail
+
+VPN Sentinel doesn't lean on any single tell — it correlates a dozen independent signals, each individually spoofable but expensive to fake in combination:
+
+| Signal | Where it runs | What it actually checks |
+| :--- | :--- | :--- |
+| **Flow timing (IAT mean/std/jitter)** | Server (raw packets) | Tunnels re-time and re-pace packets in ways plain TCP/UDP traffic doesn't |
+| **Packet length stats (min/max/std)** | Server (raw packets) | Encapsulation overhead shifts packet-size distributions in protocol-specific ways |
+| **IP reputation** | Server | Cross-checks `ipapi.is` / `ip-api.com` datacenter, VPN, Tor and proxy flags against a curated ISP/org/ASN keyword list (word-boundary matched to avoid false hits like "opera**tor**") |
+| **WebRTC IP leak / mismatch** | Browser + Server | Compares the IP WebRTC's STUN path reveals against the HTTP-observed IP — ASN and country mismatch, family-aware (IPv4 vs IPv6) so dual-stack clients aren't punished |
+| **Timezone mismatch** | Browser + Server | Compares the browser's IANA timezone against the IP's geolocated timezone, with a UTC-offset fallback and alias table for renamed zones |
+| **Language mismatch** | Browser + Server | Flags a browser language that doesn't belong to the visiting IP's country, using a real per-country language map |
+| **Geo-IP distance** | Browser (opt-in GPS) + Server | Haversine distance between GPS coordinates (if permission granted) and the IP's geolocated coordinates |
+| **Proxy header detection** | Server | Inspects `Via` and excess `X-Forwarded-For` hops beyond the deployment's own trusted edge |
+| **WebGL GPU fingerprint** | Browser | Datacenter/VPS exit nodes almost always report a software renderer (SwiftShader, llvmpipe, Mesa) instead of real GPU hardware |
+| **Browser automation flag** | Browser | Reads `navigator.webdriver`, set by headless tools like Selenium/Puppeteer/Playwright |
+| **Font-count fingerprint** | Browser | Measures rendering-width deltas across candidate fonts vs. baseline fonts — VMs and headless environments have a much smaller installed-font set than real desktops |
+| **DNS/extension ad-block detection** | Browser | Pings a known ad-server URL and times *how* the request fails to tell a DNS-level blocker (Pi-hole, NextDNS, AdGuard DNS) apart from a browser extension blocker — used as one more environment signal, not as an ad-blocking feature itself |
+| **Brave browser detection** | Browser | Checks the `navigator.brave` API as an additional environment fingerprint |
+
 ---
 
 ## 🚀 Key Capabilities
 
-- **Adversarial Robustness:** Resists traffic shaping, packet padding, and evasion tools.
+- **Adversarial Robustness:** Trained against simulated packet padding and timing-randomization evasion (`ml/adversarial_shaper.py`); Stage 1 adversarial accuracy holds at 98% after fixing a scale mismatch that previously collapsed it to ~40-57%.
 - **Real-Time SOC Dashboard:** Live frontend mapping global threats and traffic logs, responsive on desktop and mobile.
 - **Protocol Deep-Dive:** Distinguishes OpenVPN, WireGuard and IKEv2 on the raw-packet path (~96%).
 - **No-Payload Inspection:** 100% privacy-compliant; we never decrypt or inspect packet payloads (Deep Packet Inspection is not required).
 - **TLE Policy Enforcement:** VPN sessions that run past a configurable duration threshold (default 30s) are flagged as a Time Limit Exceeded policy violation.
-- **Rate Limiting:** `/api/ingest` is capped per-client to prevent abuse of the inference pipeline.
+- **Rate Limiting:** `/api/ingest` is capped at 30 requests per 60s per client IP (in-memory sliding window) to prevent abuse of the inference pipeline.
+- **Multi-Tenant Ready:** Every ingest/stats/history call is scoped by a `tenant` query param or `X-Tenant-Id` header, so one deployment can serve isolated stats to multiple customers.
+- **Live Packet Sniffer:** `ml/live_monitor.py` uses Scapy to track real flows on a network interface, compute the same 16 flow features live, and stream them to the inference API every 3 seconds.
+- **Embeddable Widget:** `widget/vpn-widget.js` drops a live-updating "Active Tunnels" badge with a protocol breakdown onto any third-party site with a single `<script>` tag.
+- **IP Lookup Tool:** A standalone `/ip` reputation checker, proxied server-side to avoid the mixed-content issues of calling HTTP-only geo-IP APIs from an HTTPS page.
 
 ---
 
